@@ -1,6 +1,7 @@
 *.ckpt.*
 *.ckpt
 *.pyc
+*.gz
 lib/tf/
 lib/cherrypy/
 upload/

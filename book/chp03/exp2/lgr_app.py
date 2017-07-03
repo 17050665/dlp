@@ -14,10 +14,10 @@ class Lgr_App:
         
     def startup(self):
         print('Logistic Regression Startup')
-        #lgr_engine = Lgr_Engine(FLAGS.data_dir)
-        #lgr_engine.train(mode=Lgr_Engine.TRAIN_MODE_CONTINUE)
+        lgr_engine = Lgr_Engine(FLAGS.data_dir)
+        lgr_engine.train(mode=Lgr_Engine.TRAIN_MODE_NEW)
         #lgr_engine.run()
-        self.learn_mnist()
+        #self.learn_mnist()
         
     def test(self):
         img_file = 'datasets/test1.png'

@@ -16,8 +16,10 @@ class Lgr_Engine(object):
         self.batch_size = 100
     
     def train(self, mode=TRAIN_MODE_NEW, ckpt_file='work/lgr.ckpt'):
-        X_train, y_train, X_validation, y_validation, X_test, y_test, mnist = self.load_datasets()
-        X, W, b, y_, y, cross_entropy, train_step, correct_prediction, accuracy = self.build_model()
+        X_train, y_train, X_validation, y_validation, X_test, \
+                y_test, mnist = self.load_datasets()
+        X, W, b, y_, y, cross_entropy, train_step, correct_prediction, \
+                accuracy = self.build_model()
         epochs = 10
         saver = tf.train.Saver()
         total_batch = int(mnist.train.num_examples/self.batch_size)
@@ -42,15 +44,19 @@ class Lgr_Engine(object):
                     sess.run(train_step, feed_dict={X: X_mb, y: y_mb})
                     no_improve_steps += 1
                     if batch_idx % check_interval == 0:
-                        train_accuracy = sess.run(accuracy, feed_dict={X: X_train, y: y_train})
-                        validation_accuracy = sess.run(accuracy, feed_dict={X: X_validation, y: y_validation})
+                        train_accuracy = sess.run(accuracy, 
+                                feed_dict={X: X_train, y: y_train})
+                        validation_accuracy = sess.run(accuracy, 
+                                feed_dict={X: X_validation, y: y_validation})
                         if best_accuracy < validation_accuracy:
-                            if validation_accuracy / best_accuracy >= improve_threthold:
+                            if validation_accuracy / best_accuracy >= \
+                                    improve_threthold:
                                 no_improve_steps = 0
                             best_accuracy = validation_accuracy
                             saver.save(sess, ckpt_file)
                         print('{0}:{1}# train:{2}, validation:{3}'.format(
-                                epoch, batch_idx, train_accuracy, validation_accuracy))
+                                epoch, batch_idx, train_accuracy, 
+                                validation_accuracy))
             print(sess.run(accuracy, feed_dict={X: X_test,
                                       y: y_test}))        
         

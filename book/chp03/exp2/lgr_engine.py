@@ -64,11 +64,12 @@ class Lgr_Engine(object):
         img_file = 'datasets/test6.png'
         img = io.imread(img_file, as_grey=True)
         raw = [1 if x<0.5 else 0 for x in img.reshape(784)]
-        #sample = np.array(raw)
-        X_train, y_train, X_validation, y_validation, X_test, y_test, mnist = self.load_datasets()
-        X, W, b, y_, y, cross_entropy, train_step, correct_prediction, accuracy = self.build_model()
-        sample = X_test[102]
-        img_in = sample.reshape(28, 28)
+        sample = np.array(raw)
+        X_train, y_train, X_validation, y_validation, \
+                X_test, y_test, mnist = self.load_datasets()
+        X, W, b, y_, y, cross_entropy, train_step, correct_prediction, \
+                accuracy = self.build_model()
+        #sample = X_test[102]
         X_run = sample.reshape(1, 784)
         saver = tf.train.Saver()
         digit = -1
@@ -82,6 +83,7 @@ class Lgr_Engine(object):
                 if max_prob < rst[0][idx]:
                     max_prob = rst[0][idx]
                     digit = idx;
+        img_in = sample.reshape(28, 28)
         plt.imshow(img_in, cmap='gray')
         plt.title('result:{0}'.format(digit))
         plt.axis('off')

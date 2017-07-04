@@ -17,7 +17,9 @@ class Mlp_Engine(object):
         self.n = 784
         self.k = 10
         self.L = np.array([self.n, 512, self.k])
+        self.lanmeda = 0.001
         self.keep_prob = 0.75
+        self.model = {}
                 
     def build_model(self):
         relu_node = 1
@@ -45,11 +47,26 @@ class Mlp_Engine(object):
         #训练部分
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(y * tf.log(y_), reduction_indices=[1]))
         #train_step = tf.train.AdagradOptimizer(0.3).minimize(cross_entropy)
-        lanmeda = 0.001
-        loss = cross_entropy + lanmeda*(tf.reduce_sum(W_1**2) + tf.reduce_sum(W_2**2))
+        loss = cross_entropy + self.lanmeda*(tf.reduce_sum(W_1**2) + tf.reduce_sum(W_2**2))
         train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-08, use_locking=False, name='Adam').minimize(loss)
         correct_prediction = tf.equal(tf.arg_max(y_, 1), tf.arg_max(y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        # 保存模型
+        self.model['X'] = X
+        self.model['y'] = y
+        self.model['W_1'] = W_1
+        self.model['b_2'] = b_2
+        self.model['z_2'] = z_2
+        self.model['a_2'] = a_2
+        self.model['W_2'] = W_2
+        self.model['b_3'] = b_3
+        self.model['z_3'] = z_3
+        self.model['y_'] = y_
+        self.model['cross_entropy'] = cross_entropy
+        self.model['loss'] = loss
+        self.model['train_step'] = train_step
+        self.model['correct_prediction'] = correct_prediction
+        self.model['accuracy'] = accuracy
         return X, y_, y, keep_prob, cross_entropy, train_step, \
                 correct_prediction, accuracy
 
@@ -96,6 +113,10 @@ class Mlp_Engine(object):
         no_improve_steps = 0
         max_no_improve_steps = 3000
         is_early_stop = False
+        eval_runs = 0
+        eval_times = []
+        train_accs = []
+        validation_accs = []
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             if Mlp_Engine.TRAIN_MODE_CONTINUE == mode:
@@ -111,10 +132,14 @@ class Mlp_Engine(object):
                     sess.run(train_step, feed_dict={X: X_mb, y: y_mb, keep_prob: self.keep_prob})
                     no_improve_steps += 1
                     if batch_idx % check_interval == 0:
+                        eval_runs += 1
+                        eval_times.append(eval_runs)
                         train_accuracy = sess.run(accuracy, 
                                 feed_dict={X: X_train, y: y_train, keep_prob: 1.0})
+                        train_accs.append(train_accuracy)
                         validation_accuracy = sess.run(accuracy, 
                                 feed_dict={X: X_validation, y: y_validation, keep_prob: 1.0})
+                        validation_accs.append(validation_accuracy)
                         if best_accuracy < validation_accuracy:
                             if validation_accuracy / best_accuracy >= \
                                     improve_threthold:
@@ -126,6 +151,11 @@ class Mlp_Engine(object):
                                 validation_accuracy))
             print(sess.run(accuracy, feed_dict={X: X_test,
                                       y: y_test, keep_prob: 1.0}))
+            plt.figure(1)
+            plt.subplot(111)
+            plt.plot(eval_times, train_accs, 'b-', eval_times, validation_accs, 'r-')
+            plt.title('train accuracy')
+            plt.show()
         
     def run(self, ckpt_file='work/lgr.ckpt'):
         img_file = 'datasets/test6.png'
@@ -149,11 +179,28 @@ class Mlp_Engine(object):
             for idx in range(10):
                 if max_prob < rst[0][idx]:
                     max_prob = rst[0][idx]
-                    digit = idx;
+                    digit = idx
+            # W_1_1
+            W_1 = sess.run(self.model['W_1'])
+            wight_map = W_1[:,0].reshape(28, 28)
+            a_2 = sess.run(self.model['a_2'], feed_dict={X: X_run, keep_prob: 1.0})
+            a_2_0 = a_2[0]
+            a_2_1 = a_2_0[0:484]
+            feature_map = a_2_1.reshape(22, 22)
         img_in = sample.reshape(28, 28)
+        plt.figure(1)
+        plt.subplot(131)
         plt.imshow(img_in, cmap='gray')
         plt.title('result:{0}'.format(digit))
         plt.axis('off')
+        plt.subplot(132)
+        plt.imshow(wight_map, cmap='gray')
+        plt.axis('off')
+        plt.title('wight row')
+        plt.subplot(133)
+        plt.imshow(feature_map, cmap='gray')
+        plt.axis('off')
+        plt.title('hidden layer')
         plt.show()
         
     def load_datasets(self):

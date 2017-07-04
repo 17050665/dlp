@@ -15,8 +15,8 @@ class Mlp_App:
     def startup(self):
         print('Multi Layer Percepton Startup')
         mlp_engine = Mlp_Engine('datasets')
-        #mlp_engine.train()
-        mlp_engine.run()
+        mlp_engine.train()
+        #mlp_engine.run()
 
 def main(_):
     mlp_app = Mlp_App()

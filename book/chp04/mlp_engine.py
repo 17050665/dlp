@@ -33,7 +33,8 @@ class Mlp_Engine(object):
         X = tf.placeholder(tf.float32, [None, 784])
         y = tf.placeholder(tf.float32, [None, 10])
         #隐藏层
-        W_1 = tf.Variable(tf.truncated_normal([784, 512], mean=0.0, stddev=0.1)) #初始化隐含层权重W1，服从默认均值为0，标准差为0.1的截断正态分布
+        W_1 = tf.Variable(tf.truncated_normal([784, 512], mean=0.0, 
+                stddev=0.1)) #初始化隐含层权重W1，服从默认均值为0，标准差为0.1的截断正态分布
         b_2 = tf.Variable(tf.zeros([512])) #隐含层偏置b1全部初始化为0
         z_2 = tf.matmul(X, W_1) + b_2
         a_2 = tf.nn.relu(z_2)
@@ -45,12 +46,23 @@ class Mlp_Engine(object):
         z_3 = tf.matmul(a_2_dropout, W_2) + b_3
         y_ = tf.nn.softmax(z_3)
         #训练部分
-        cross_entropy = tf.reduce_mean(-tf.reduce_sum(y * tf.log(y_), reduction_indices=[1]))
+        cross_entropy = tf.reduce_mean(-tf.reduce_sum(y * tf.log(y_), 
+        reduction_indices=[1]))
         #train_step = tf.train.AdagradOptimizer(0.3).minimize(cross_entropy)
-        loss = cross_entropy + self.lanmeda*(tf.reduce_sum(W_1**2) + tf.reduce_sum(W_2**2))
-        train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-08, use_locking=False, name='Adam').minimize(loss)
+        loss = cross_entropy + self.lanmeda*(tf.reduce_sum(W_1**2) + 
+                tf.reduce_sum(W_2**2))
+        train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, 
+                beta2=0.999, epsilon=1e-08, use_locking=False, 
+                name='Adam').minimize(loss)
         correct_prediction = tf.equal(tf.arg_max(y_, 1), tf.arg_max(y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        self.saveModelTensor(X, y, W_1, b_2, z_2, a_2, W_2, b_3, z_3, y_, 
+                cross_entropy, loss, train_step, correct_prediction, accuracy)
+        return X, y_, y, keep_prob, cross_entropy, train_step, \
+                correct_prediction, accuracy
+                
+    def saveModelTensor(self, X, y, W_1, b_2, z_2, a_2, W_2, b_3, z_3, y_, 
+            cross_entropy, loss, train_step, correct_prediction, accuracy):
         # 保存模型
         self.model['X'] = X
         self.model['y'] = y
@@ -67,8 +79,6 @@ class Mlp_Engine(object):
         self.model['train_step'] = train_step
         self.model['correct_prediction'] = correct_prediction
         self.model['accuracy'] = accuracy
-        return X, y_, y, keep_prob, cross_entropy, train_step, \
-                correct_prediction, accuracy
 
     
     def build_sigmoid(self):
@@ -78,13 +88,16 @@ class Mlp_Engine(object):
         y = tf.placeholder(tf.float32, shape=[None, 10])
         keep_prob = tf.placeholder(tf.float32) #Dropout失活率
         # 隐藏层
-        W_1 = tf.Variable(tf.random_normal(shape=[784, 512], mean=0.0, stddev=1.0)) # W_t
+        W_1 = tf.Variable(tf.random_normal(shape=[784, 512], mean=0.0, 
+                stddev=1.0)) # W_t
         b_2 = tf.Variable(tf.zeros(shape=[512]))
         z_2 = tf.matmul(X, W_1) + b_2
         a_2 = tf.nn.sigmoid(z_2)
         # 输出层
-        W_2 = tf.Variable(tf.random_normal(shape=[512, 10], mean=0.0, stddev=1.0)) # W_t
-        b_3 = tf.Variable(tf.random_normal(shape=[10], mean=0.0, stddev=1.0))
+        W_2 = tf.Variable(tf.random_normal(shape=[512, 10], 
+                mean=0.0, stddev=1.0)) # W_t
+        b_3 = tf.Variable(tf.random_normal(shape=[10], mean=0.0, 
+                stddev=1.0))
         z_3 = tf.matmul(a_2, W_2) + b_3
         y_ = tf.nn.softmax(z_3)
         # 代价函数
@@ -92,7 +105,9 @@ class Mlp_Engine(object):
         cross_entropy = tf.reduce_sum(- y * tf.log(y_), 1)
         loss = tf.reduce_mean(cross_entropy)
         #train_step = tf.train.GradientDescentOptimizer(0.05).minimize(loss)
-        train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-08, use_locking=False, name='Adam').minimize(loss)
+        train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, 
+                beta2=0.999, epsilon=1e-08, use_locking=False, 
+                name='Adam').minimize(loss)
         # 精度计算
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -153,8 +168,10 @@ class Mlp_Engine(object):
                                       y: y_test, keep_prob: 1.0}))
             plt.figure(1)
             plt.subplot(111)
-            plt.plot(eval_times, train_accs, 'b-', eval_times, validation_accs, 'r-')
-            plt.title('train accuracy')
+            plt.plot(eval_times, train_accs, 'b-', label='train accuracy')
+            plt.plot(eval_times, validation_accs, 'r-', label='validation accuracy')
+            plt.title('accuracy trend')
+            plt.legend(loc='lower right')
             plt.show()
         
     def run(self, ckpt_file='work/lgr.ckpt'):
@@ -215,83 +232,25 @@ class Mlp_Engine(object):
         y_validation = mnist.validation.labels
         X_test = mnist.test.images
         y_test = mnist.test.labels
+        '''
+        print('X_train: {0} y_train:{1}'.format(
+                X_train.shape, y_train.shape))
+        print('X_validation: {0} y_validation:{1}'.format(
+                X_validation.shape, y_validation.shape))
+        print('X_test: {0} y_test:{1}'.format(
+                X_test.shape, y_test.shape))
+        image_raw = (X_train[1] * 255).astype(int)
+        image = image_raw.reshape(28, 28)
+        label = y_train[1]
+        idx = 0
+        for item in label:
+            if 1 == item:
+                break
+            idx += 1
+        plt.title('digit:{0}'.format(idx))
+        plt.imshow(image, cmap='gray')
+        plt.show()
+        '''
         return X_train, y_train, X_validation, y_validation, \
                 X_test, y_test, mnist
-
-
-
-
-
-        
-        '''
-        print('b1')
-        x1 = np.array([[1.0, 2.0],[3.0, 4.0], [5.0, 6.0]])
-        print(x1)
-        x2 = np.array([8.0, 9.0])
-        print(x2)
-        x3 = x1 + x2
-        print(x3)
-        X = tf.placeholder(tf.float32, [None, self.L[0]])
-        layers = self.L.shape[0]
-        W = []
-        b = []
-        z = []
-        a = []
-        for layer in range(layers-1):
-            W += [tf.Variable(tf.random_normal([self.L[layer+1], self.L[layer]]))]
-        z += [X]
-        a += [X]
-        b += [tf.Variable(tf.random_normal(self.L[0])]
-        for layer in range(1, layers):
-            b += [tf.Variable(tf.random_normal(self.L[layer])]
-            z += [tf.matmul(a[layer-1], tf.transpose(W[layer-1])) + b[layer-1]]
-            a += [tf.nn.relu(z)]
-        # 隐藏层定义
-        # 回归层定义
-        '''
-        '''
-        W = tf.Variable(tf.zeros([784, 10]))
-        b = tf.Variable(tf.zeros([10]))
-        #y_ = tf.matmul(X, W) + b
-        z = tf.matmul(X, W) + b
-        y_ = tf.nn.softmax(z)
-        y = tf.placeholder(tf.float32, [None, 10])
-        cross_entropy = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=y_))
-        lanmeda = 0.001
-        J = cross_entropy + lanmeda*tf.reduce_sum(W**2)
-        #train_step = tf.train.GradientDescentOptimizer(0.5).minimize(
-        #       cross_entropy)
-        train_step = tf.train.GradientDescentOptimizer(0.5).minimize(J)
-        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        return X, W, b, y_, y, cross_entropy, train_step, \
-                correct_prediction, accuracy
-        '''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

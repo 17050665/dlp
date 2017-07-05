@@ -144,7 +144,8 @@ class Mlp_Engine(object):
                         is_early_stop = True
                         break
                     X_mb, y_mb = mnist.train.next_batch(self.batch_size)
-                    sess.run(train_step, feed_dict={X: X_mb, y: y_mb, keep_prob: self.keep_prob})
+                    sess.run(train_step, feed_dict={X: X_mb, y: y_mb, 
+                            keep_prob: self.keep_prob})
                     no_improve_steps += 1
                     if batch_idx % check_interval == 0:
                         eval_runs += 1
@@ -153,7 +154,8 @@ class Mlp_Engine(object):
                                 feed_dict={X: X_train, y: y_train, keep_prob: 1.0})
                         train_accs.append(train_accuracy)
                         validation_accuracy = sess.run(accuracy, 
-                                feed_dict={X: X_validation, y: y_validation, keep_prob: 1.0})
+                                feed_dict={X: X_validation, y: y_validation, 
+                                keep_prob: 1.0})
                         validation_accs.append(validation_accuracy)
                         if best_accuracy < validation_accuracy:
                             if validation_accuracy / best_accuracy >= \
@@ -169,7 +171,8 @@ class Mlp_Engine(object):
             plt.figure(1)
             plt.subplot(111)
             plt.plot(eval_times, train_accs, 'b-', label='train accuracy')
-            plt.plot(eval_times, validation_accs, 'r-', label='validation accuracy')
+            plt.plot(eval_times, validation_accs, 'r-', 
+                    label='validation accuracy')
             plt.title('accuracy trend')
             plt.legend(loc='lower right')
             plt.show()

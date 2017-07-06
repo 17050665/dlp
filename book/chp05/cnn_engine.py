@@ -6,7 +6,7 @@ from skimage import io
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-class Mlp_Engine(object):
+class Cnn_Engine(object):
     # 采用习惯用法定义常量
     TRAIN_MODE_NEW = 1
     TRAIN_MODE_CONTINUE = 2
@@ -22,94 +22,53 @@ class Mlp_Engine(object):
         self.model = {}
                 
     def build_model(self):
-        relu_node = 1
-        if 1 == relu_node:
-            return self.build_relu()
-        else:
-            return self.build_sigmoid()
-        
-    def build_relu(self):
-        print('###### relu #####')
-        X = tf.placeholder(tf.float32, [None, 784])
-        y = tf.placeholder(tf.float32, [None, 10])
-        #隐藏层
-        W_1 = tf.Variable(tf.truncated_normal([784, 512], mean=0.0, 
-                stddev=0.1)) #初始化隐含层权重W1，服从默认均值为0，标准差为0.1的截断正态分布
-        b_2 = tf.Variable(tf.zeros([512])) #隐含层偏置b1全部初始化为0
-        z_2 = tf.matmul(X, W_1) + b_2
-        a_2 = tf.nn.relu(z_2)
+        print('build convolutional neural network')
+        X = tf.placeholder(shape=[None, 28, 28, 1], dtype=tf.float32)
+        y = tf.placeholder(shape=[None, self.k], dtype=tf.float32)
         keep_prob = tf.placeholder(tf.float32) #Dropout失活率
-        a_2_dropout = tf.nn.dropout(a_2, keep_prob)
-        #输出层
-        W_2 = tf.Variable(tf.zeros([512, 10]))
-        b_3 = tf.Variable(tf.zeros([10]))
-        z_3 = tf.matmul(a_2_dropout, W_2) + b_3
-        y_ = tf.nn.softmax(z_3)
+        # 第2层第1个卷积层c1
+        W_1 = tf.Variable(tf.truncated_normal(shape=[5, 5, 1, 6], mean=0.0, stddev=0.1))
+        b_2 = tf.Variable(tf.zeros([28, 28, 6]))
+        z_2 = tf.nn.conv2d(X, W_1, strides=[1, 1, 1, 1], padding='SAME') + b_2
+        a_2 = tf.nn.relu(z_2)
+        # 第3层第1个最大池化层
+        m_3 = tf.nn.max_pool(a_2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        # 第4层第2个卷积层C2
+        W_4 = tf.Variable(tf.truncated_normal(shape=[5, 5, 6, 16], mean=0.0, stddev=0.1))
+        b_4 = tf.Variable(tf.zeros([10, 10, 16]))
+        z_4 = tf.nn.conv2d(m_3, W_4, strides=[1, 1, 1, 1], padding='VALID') + b_4
+        a_4 = tf.nn.relu(z_4)
+        # 第5层第2个最大池化层
+        m_5 = tf.nn.max_pool(a_4, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        # 第6层第3个卷积层
+        W_5 = tf.Variable(tf.truncated_normal(shape=[5, 5, 16, 120], mean=0.0, stddev=0.1))
+        b_6 = tf.Variable(tf.zeros([1, 1, 120]))
+        z_6_raw = tf.nn.conv2d(m_5, W_5, strides=[1, 1, 1, 1], padding='VALID') + b_6
+        z_6 = tf.reshape(z_6_raw, [-1, 120])
+        a_6 = tf.nn.relu(z_6)
+        # 第7层第1个全连接层
+        W_6 = tf.Variable(tf.truncated_normal(shape=[120, 84], mean=0.0, stddev=0.1))
+        b_7 = b_6 = tf.Variable(tf.zeros([84]))
+        z_7 = tf.matmul(a_6, W_6) + b_7
+        a_7 = tf.nn.relu(z_7)
+        # 第8层第2个全连接层
+        W_7 = tf.Variable(tf.truncated_normal(shape=[84, 10], mean=0.0, stddev=0.1))
+        b_8 = tf.Variable(tf.zeros([10]))
+        z_8 = tf.matmul(a_7, W_7) + b_8
+        y_ = tf.nn.softmax(z_8)
         #训练部分
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(y * tf.log(y_), 
         reduction_indices=[1]))
         #train_step = tf.train.AdagradOptimizer(0.3).minimize(cross_entropy)
         loss = cross_entropy + self.lanmeda*(tf.reduce_sum(W_1**2) + 
-                tf.reduce_sum(W_2**2))
+                tf.reduce_sum(W_4**2) + 
+                tf.reduce_sum(W_5**2) + 
+                tf.reduce_sum(W_6**2) + 
+                tf.reduce_sum(W_7**2))
         train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, 
                 beta2=0.999, epsilon=1e-08, use_locking=False, 
                 name='Adam').minimize(loss)
         correct_prediction = tf.equal(tf.arg_max(y_, 1), tf.arg_max(y, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        self.saveModelTensor(X, y, W_1, b_2, z_2, a_2, W_2, b_3, z_3, y_, 
-                cross_entropy, loss, train_step, correct_prediction, accuracy)
-        return X, y_, y, keep_prob, cross_entropy, train_step, \
-                correct_prediction, accuracy
-                
-    def saveModelTensor(self, X, y, W_1, b_2, z_2, a_2, W_2, b_3, z_3, y_, 
-            cross_entropy, loss, train_step, correct_prediction, accuracy):
-        # 保存模型
-        self.model['X'] = X
-        self.model['y'] = y
-        self.model['W_1'] = W_1
-        self.model['b_2'] = b_2
-        self.model['z_2'] = z_2
-        self.model['a_2'] = a_2
-        self.model['W_2'] = W_2
-        self.model['b_3'] = b_3
-        self.model['z_3'] = z_3
-        self.model['y_'] = y_
-        self.model['cross_entropy'] = cross_entropy
-        self.model['loss'] = loss
-        self.model['train_step'] = train_step
-        self.model['correct_prediction'] = correct_prediction
-        self.model['accuracy'] = accuracy
-
-    
-    def build_sigmoid(self):
-        print('###### sigmoid #####')
-        self.keep_prob = 0.90
-        X = tf.placeholder(tf.float32, [None, 784])
-        y = tf.placeholder(tf.float32, shape=[None, 10])
-        keep_prob = tf.placeholder(tf.float32) #Dropout失活率
-        # 隐藏层
-        W_1 = tf.Variable(tf.random_normal(shape=[784, 512], mean=0.0, 
-                stddev=1.0)) # W_t
-        b_2 = tf.Variable(tf.zeros(shape=[512]))
-        z_2 = tf.matmul(X, W_1) + b_2
-        a_2 = tf.nn.sigmoid(z_2)
-        # 输出层
-        W_2 = tf.Variable(tf.random_normal(shape=[512, 10], 
-                mean=0.0, stddev=1.0)) # W_t
-        b_3 = tf.Variable(tf.random_normal(shape=[10], mean=0.0, 
-                stddev=1.0))
-        z_3 = tf.matmul(a_2, W_2) + b_3
-        y_ = tf.nn.softmax(z_3)
-        # 代价函数
-        # cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(y_, y)
-        cross_entropy = tf.reduce_sum(- y * tf.log(y_), 1)
-        loss = tf.reduce_mean(cross_entropy)
-        #train_step = tf.train.GradientDescentOptimizer(0.05).minimize(loss)
-        train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, 
-                beta2=0.999, epsilon=1e-08, use_locking=False, 
-                name='Adam').minimize(loss)
-        # 精度计算
-        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         return X, y_, y, keep_prob, cross_entropy, train_step, \
                 correct_prediction, accuracy
@@ -134,7 +93,7 @@ class Mlp_Engine(object):
         validation_accs = []
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            if Mlp_Engine.TRAIN_MODE_CONTINUE == mode:
+            if Cnn_Engine.TRAIN_MODE_CONTINUE == mode:
                 saver.restore(sess, ckpt_file)
             for epoch in range(epochs):
                 if is_early_stop:
@@ -143,7 +102,8 @@ class Mlp_Engine(object):
                     if no_improve_steps >= max_no_improve_steps:
                         is_early_stop = True
                         break
-                    X_mb, y_mb = mnist.train.next_batch(self.batch_size)
+                    X_mb_raw, y_mb = mnist.train.next_batch(self.batch_size)
+                    X_mb = X_mb_raw.reshape([self.batch_size, 28, 28, 1])
                     sess.run(train_step, feed_dict={X: X_mb, y: y_mb, 
                             keep_prob: self.keep_prob})
                     no_improve_steps += 1
@@ -151,10 +111,10 @@ class Mlp_Engine(object):
                         eval_runs += 1
                         eval_times.append(eval_runs)
                         train_accuracy = sess.run(accuracy, 
-                                feed_dict={X: X_train, y: y_train, keep_prob: 1.0})
+                                feed_dict={X: X_train.reshape([-1, 28, 28, 1]), y: y_train, keep_prob: 1.0})
                         train_accs.append(train_accuracy)
                         validation_accuracy = sess.run(accuracy, 
-                                feed_dict={X: X_validation, y: y_validation, 
+                                feed_dict={X: X_validation.reshape([-1, 28, 28, 1]), y: y_validation, 
                                 keep_prob: 1.0})
                         validation_accs.append(validation_accuracy)
                         if best_accuracy < validation_accuracy:
@@ -166,7 +126,7 @@ class Mlp_Engine(object):
                         print('{0}:{1}# train:{2}, validation:{3}'.format(
                                 epoch, batch_idx, train_accuracy, 
                                 validation_accuracy))
-            print(sess.run(accuracy, feed_dict={X: X_test,
+            print(sess.run(accuracy, feed_dict={X: X_test.reshape([-1, 28, 28, 1]),
                                       y: y_test, keep_prob: 1.0}))
             plt.figure(1)
             plt.subplot(111)
@@ -181,12 +141,12 @@ class Mlp_Engine(object):
         img_file = 'datasets/test6.png'
         img = io.imread(img_file, as_grey=True)
         raw = [1 if x<0.5 else 0 for x in img.reshape(784)]
-        #sample = np.array(raw)
+        sample = np.array(raw)
         X_train, y_train, X_validation, y_validation, \
                 X_test, y_test, mnist = self.load_datasets()
         X, y_, y, keep_prob, cross_entropy, train_step, correct_prediction, \
                 accuracy = self.build_model()
-        sample = X_test[102]
+        #sample = X_test[102]
         X_run = sample.reshape(1, 784)
         saver = tf.train.Saver()
         digit = -1
@@ -200,6 +160,7 @@ class Mlp_Engine(object):
                 if max_prob < rst[0][idx]:
                     max_prob = rst[0][idx]
                     digit = idx
+            '''
             # W_1_1
             W_1 = sess.run(self.model['W_1'])
             wight_map = W_1[:,0].reshape(28, 28)
@@ -223,6 +184,7 @@ class Mlp_Engine(object):
         plt.axis('off')
         plt.title('hidden layer')
         plt.show()
+        '''
         
     def load_datasets(self):
         ''' 调用Tensorflow的input_data，读入MNIST手写数字识别数据集的

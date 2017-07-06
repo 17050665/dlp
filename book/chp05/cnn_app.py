@@ -6,6 +6,8 @@ import matplotlib.image as mpimg
 from skimage import io
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
+from conv_demo import Conv_Demo
+from cnn_engine import Cnn_Engine
 
 class Cnn_App:
     def __init__(self):
@@ -13,6 +15,11 @@ class Cnn_App:
         
     def startup(self):
         print('Convolutional Neural Network Startup')
+        #conv_demo = Conv_Demo()
+        #conv_demo.startup()
+        cnn_engine = Cnn_Engine('datasets')
+        #cnn_engine.build_model()
+        cnn_engine.train()
 
 def main(_):
     cnn_app = Cnn_App()

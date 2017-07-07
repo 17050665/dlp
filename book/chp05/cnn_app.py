@@ -19,7 +19,8 @@ class Cnn_App:
         #conv_demo.startup()
         cnn_engine = Cnn_Engine('datasets')
         #cnn_engine.build_model()
-        cnn_engine.train()
+        #cnn_engine.train()
+        cnn_engine.run()
 
 def main(_):
     cnn_app = Cnn_App()

@@ -21,9 +21,9 @@ class Lstm_Engine(object):
             with sv.managed_session() as session:
                 for i in range(config.max_max_epoch):
                     lr_decay = config.lr_decay ** max(i + 1 - config.max_epoch, 0.0)
-                    curr_lr = session.run(self._lr_update, feed_dict={self._new_lr: config.learning_rate * lr_decay})
-                    print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(self._lr)))
-                    train_perplexity = self.run_epoch(session, config, epoch_size_train, eval_op=self._train_op, verbose=True)
+                    curr_lr = session.run(self._train_model['lr_update'], feed_dict={self._train_model['new_lr']: config.learning_rate * lr_decay})
+                    print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(self._train_model['lr'])))
+                    train_perplexity = self.run_epoch(session, config, self._train_model, epoch_size_train, eval_op=self._train_model['train_op'], verbose=True)
         print('^_^ v0.0.5')
         
         
@@ -39,28 +39,31 @@ class Lstm_Engine(object):
                 #self.create_model(self._test_model, X_train, y_train, is_training=True, config=config)
     
         
-    def run_epoch(self, session, config, epoch_size, eval_op=None, verbose=False):
+    def run_epoch(self, session, config, model, epoch_size, eval_op=None, verbose=False):
         start_time = time.time()
         costs = 0.0
         iters = 0
-        state = session.run(self._initial_state)
+        state = session.run(model['initial_state'])
         epoch_size_val = session.run(epoch_size)
         fetches = {
-          "logits": self._logits,
-          "cost": self._cost,
-          "final_state": self._final_state,
+          "logits": model['logits'],
+          "cost": model['cost'],
+          "final_state": model['final_state'],
         }
         if eval_op is not None:
             fetches["eval_op"] = eval_op
         for step in range(epoch_size_val):
             feed_dict = {}
-            for i, (c, h) in enumerate(self._initial_state):
+            for i, (c, h) in enumerate(model['initial_state']):
+                print('{0} c:{1}, h{2}'.format(i, c.shape, h.shape))
                 feed_dict[c] = state[i].c
                 feed_dict[h] = state[i].h
+            time.sleep(1)
+            print('*********************************************************')
             vals = session.run(fetches, feed_dict)
             cost = vals["cost"]
             state = vals["final_state"]
-            self.logits_val = vals["logits"]
+            model['logits_val'] = vals["logits"]
             costs += cost
             iters += config.num_steps
             if verbose and step % 3 == 0: #(model.input.epoch_size // 10) == 10:
@@ -72,22 +75,24 @@ class Lstm_Engine(object):
     
     def create_model(self, model, X, y, is_training, config):
         print('create model')
-        cell = tf.contrib.rnn.MultiRNNCell(
+        model['cell'] = tf.contrib.rnn.MultiRNNCell(
                         [self.create_lstm_cell(is_training, config) for _ in range(config.num_layers)], state_is_tuple=True)
-        self._initial_state = cell.zero_state(config.batch_size, self.data_type())
-        with tf.device("/cpu:0"):
-            embedding = tf.get_variable(
-                            "embedding", [config.vocab_size, config.hidden_size], dtype=self.data_type())
-            self.embedding = embedding
-            X = tf.nn.embedding_lookup(embedding, X)
+        model['initial_state'] = model['cell'].zero_state(config.batch_size, self.data_type())
+        if not hasattr(self, 'embedding'):
+            with tf.device("/cpu:0"):
+                embedding = tf.get_variable(
+                                "embedding", [config.vocab_size, config.hidden_size], dtype=self.data_type())
+                self.embedding = embedding
+        X = tf.nn.embedding_lookup(self.embedding, X)
         if is_training and config.keep_prob < 1:
             X = tf.nn.dropout(X, config.keep_prob)
+        print('cell:{0}'.format(model['cell']))
         y_ = []
-        state = self._initial_state
+        state = model['initial_state'] # self._initial_state
         with tf.variable_scope("RNN"):
             for time_step in range(config.num_steps):
                 if time_step > 0: tf.get_variable_scope().reuse_variables()
-                (cell_output, state) = cell(X[:, time_step, :], state)
+                (cell_output, state) = model['cell'](X[:, time_step, :], state)
                 y_.append(cell_output)
         y_ = tf.reshape(tf.stack(axis=1, values=y_), [-1, config.hidden_size])
         softmax_w = tf.get_variable(
@@ -95,31 +100,30 @@ class Lstm_Engine(object):
         softmax_b = tf.get_variable('softmax_b', [config.vocab_size], dtype=self.data_type())
         logits = tf.matmul(y_, softmax_w) + softmax_b
         # Reshape logits to be 3-D tensor for sequence loss
-        logits = tf.reshape(logits, [config.batch_size, config.num_steps, config.vocab_size])
-        self._logits = logits
+        model['logits'] = tf.reshape(logits, [config.batch_size, config.num_steps, config.vocab_size])
         # use the contrib sequence loss and average over the batches
         loss = tf.contrib.seq2seq.sequence_loss(
-            logits,
+            model['logits'],
             y,
             tf.ones([config.batch_size, config.num_steps], dtype=self.data_type()),
             average_across_timesteps=False,
             average_across_batch=True
         )
-        self._cost = cost = tf.reduce_sum(loss)
-        self._final_state = state
+        model['cost'] = tf.reduce_sum(loss)
+        model['final_state'] = state
         if not is_training:
           return
-        self._lr = tf.Variable(0.0, trainable=False)
+        model['lr'] = tf.Variable(0.0, trainable=False)
         tvars = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars),
+        grads, _ = tf.clip_by_global_norm(tf.gradients(model['cost'], tvars),
                                           config.max_grad_norm)
-        optimizer = tf.train.GradientDescentOptimizer(self._lr)
-        self._train_op = optimizer.apply_gradients(
+        optimizer = tf.train.GradientDescentOptimizer(model['lr'])
+        model['train_op'] = optimizer.apply_gradients(
                         zip(grads, tvars),
                         global_step=tf.contrib.framework.get_or_create_global_step())
-        self._new_lr = tf.placeholder(
+        model['new_lr'] = tf.placeholder(
                         tf.float32, shape=[], name="new_learning_rate")
-        self._lr_update = tf.assign(self._lr, self._new_lr)
+        model['lr_update'] = tf.assign(model['lr'], model['new_lr'])
         
         
         
@@ -160,13 +164,13 @@ class SmallConfig(object):
   learning_rate = 1.0
   max_grad_norm = 5
   num_layers = 2
-  num_steps = 20
-  hidden_size = 200
+  num_steps = 20 # 20
+  hidden_size = 200 # 200
   max_epoch = 4
   max_max_epoch = 13
   keep_prob = 1.0
   lr_decay = 0.5
-  batch_size = 20
+  batch_size = 20 # 20
   vocab_size = 10000
 
 

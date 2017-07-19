@@ -42,18 +42,30 @@ class Lstm_Engine(object):
                 if is_early_stop:
                     break
                 batch_idx = 1
-                for start, end in zip(range(0, len(X_train), self.batch_size), range(self.batch_size, len(X_train)+1, self.batch_size)):
+                for start, end in zip(range(0, len(X_train), self.batch_size),
+                                range(self.batch_size, len(X_train)+1,
+                                self.batch_size)):
                     if no_improve_steps >= max_no_improve_steps:
                         is_early_stop = True
                         break
-                    sess.run(self.train_op, feed_dict={self.X: X_train[start:end], self.y: y_train[start:end]})
+                    sess.run(self.train_op, feed_dict={self.X:
+                                    X_train[start:end],
+                                    self.y: y_train[start:end]})
                     no_improve_steps += 1
                     if batch_idx % check_interval == 0:
                         eval_runs += 1
                         eval_times.append(eval_runs)
-                        train_accuracy = self.calculate_accuracy(sess, X_train, y_train)
+                        #train_accuracy = sess.run(self.accuracy,
+                        #                feed_dict={self.X: X_train,
+                        #                self.y: y_train})
+                        train_accuracy = self.calculate_accuracy(sess,
+                                       X_train, y_train)
                         train_accs.append(train_accuracy)
-                        validation_accuracy = self.calculate_accuracy(sess, X_validation, y_validation)
+                        #validation_accuracy = sess.run(self.accuracy,
+                        #                feed_dict={self.X: X_validation,
+                        #                self.y: y_validation})
+                        validation_accuracy = self.calculate_accuracy(sess,
+                                       X_validation, y_validation)
                         validation_accs.append(validation_accuracy)
                         if best_accuracy < validation_accuracy:
                             if validation_accuracy / best_accuracy >= \
@@ -65,8 +77,8 @@ class Lstm_Engine(object):
                                 epoch, batch_idx, train_accuracy, 
                                 validation_accuracy))
                     batch_idx += 1
-                #print(i, self.calculate_accuracy(sess, X_validation, y_validation))
-            print('test result:{0}'.format(self.calculate_accuracy(sess, X_test, y_test)))
+            print('test result:{0}'.format(sess.run(self.accuracy,
+                            feed_dict={self.X: X_test, self.y: y_test})))
             plt.figure(1)
             plt.subplot(111)
             plt.plot(eval_times, train_accs, 'b-', label='train accuracy')
@@ -75,7 +87,6 @@ class Lstm_Engine(object):
             plt.title('accuracy trend')
             plt.legend(loc='lower right')
             plt.show()
-        print('^_^')
         
     def run(self, ckpt_file='work/lgr.ckpt'):
         img_file = 'datasets/test5.png'
@@ -90,12 +101,7 @@ class Lstm_Engine(object):
             sess.run(tf.global_variables_initializer())
             saver.restore(sess, ckpt_file)
             rst = sess.run(self.y_, feed_dict={self.X: X_run})
-            print('rst:{0}'.format(rst))
-            max_prob = -0.1
-            for idx in range(10):
-                if max_prob < rst[0][idx]:
-                    max_prob = rst[0][idx]
-                    digit = idx
+            digit = np.argmax(rst)
         img_in = sample.reshape(28, 28)
         plt.figure(1)
         plt.subplot(111)
@@ -105,9 +111,13 @@ class Lstm_Engine(object):
         plt.show()
         
     def calculate_accuracy(self, sess, X, y):
-        indices = np.arange(len(X))
+        # 计算随机批次上的精度
+        indices = np.arange(len(X))  # Get A Test Batch
+        np.random.shuffle(indices)
+        indices = indices[0:self.batch_size]
         return np.mean(np.argmax(y[indices], axis=1) ==
-                            sess.run(self.predict_op, feed_dict={self.X: X[indices]}))
+                         np.argmax(sess.run(self.y_, 
+                         feed_dict={self.X: X[indices]}), axis=1))
         
     def build_model(self):
         self.X = tf.placeholder(tf.float32, [None, self.time_step_size, self.input_vec_size])
@@ -122,7 +132,8 @@ class Lstm_Engine(object):
         y_ = tf.matmul(z[-1], W) + b
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_, labels=self.y))
         self.train_op = tf.train.RMSPropOptimizer(0.001, 0.9).minimize(cost)
-        self.predict_op = tf.argmax(y_, 1)
+        self.correct_prediction = tf.equal(tf.arg_max(y_, 1), tf.arg_max(self.y, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         self.y_ = y_
         
     def load_datasets(self):

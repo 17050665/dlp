@@ -54,44 +54,44 @@ class Mlp_Engine(object):
             self.W_1 = tf.Variable(dae0_W1, name='W_1')
             self.b_2 = tf.Variable(dae0_b2, name='b_2')
         else:
-            self.W_1 = tf.Variable(tf.truncated_normal([784, 1024], mean=0.0, 
+            self.W_1 = tf.Variable(tf.truncated_normal([784, 1024], mean=0.0,
                 stddev=0.1), name='W_1')
             self.b_2 = tf.Variable(tf.zeros([1024]), name='b_2')
         self.z_2 = tf.matmul(self.X, self.W_1) + self.b_2
-        self.a_2 = tf.nn.relu(self.z_2)
+        self.a_2 = tf.nn.tanh(self.z_2) # tf.nn.relu(self.z_2)
         self.a_2_dropout = tf.nn.dropout(self.a_2, self.keep_prob)
         # 从1024到784的去噪自动编码机
         if 'train' == mode:
             self.W_2 = tf.Variable(dae1_W1, name='W_2')
             self.b_3 = tf.Variable(dae1_b2, name='b_3')
         else:
-            self.W_2 = tf.Variable(tf.truncated_normal([1024, 784], mean=0.0, 
+            self.W_2 = tf.Variable(tf.truncated_normal([1024, 784], mean=0.0,
                 stddev=0.1), name='W_2')
             self.b_3 = tf.Variable(tf.zeros([784]), name='b_3')
         self.z_3 = tf.matmul(self.a_2_dropout, self.W_2) + self.b_3
-        self.a_3 = tf.nn.relu(self.z_3)
+        self.a_3 = tf.nn.tanh(self.z_3) # tf.nn.relu(self.z_3)
         self.a_3_dropout = tf.nn.dropout(self.a_3, self.keep_prob)
         # 从784到512的去噪自动编码机
         if 'train' == mode:
             self.W_3 = tf.Variable(dae2_W1, name='W_3')
             self.b_4 = tf.Variable(dae2_b2, name='b_4')
         else:
-            self.W_3 = tf.Variable(tf.truncated_normal([784, 512], mean=0.0, 
+            self.W_3 = tf.Variable(tf.truncated_normal([784, 512], mean=0.0,
                 stddev=0.1), name='W_3')
             self.b_4 = tf.Variable(tf.zeros([512]), name='b_4')
         self.z_4 = tf.matmul(self.a_3_dropout, self.W_3) + self.b_4
-        self.a_4 = tf.nn.relu(self.z_4)
+        self.a_4 = tf.nn.tanh(self.z_4) #tf.nn.relu(self.z_4)
         self.a_4_dropout = tf.nn.dropout(self.a_4, self.keep_prob)
         # 从512到256的去噪自动编码机
         if 'train' == mode:
             self.W_4 = tf.Variable(dae3_W1, name='W_4')
             self.b_5 = tf.Variable(dae3_b2, name='b_5')
         else:
-            self.W_4 = tf.Variable(tf.truncated_normal([512, 256], mean=0.0, 
+            self.W_4 = tf.Variable(tf.truncated_normal([512, 256], mean=0.0,
                 stddev=0.1), name='W_4')
             self.b_5 = tf.Variable(tf.zeros([256]), name='b_5')
         self.z_5 = tf.matmul(self.a_4_dropout, self.W_4) + self.b_5
-        self.a_5 = tf.nn.relu(self.z_5)
+        self.a_5 = tf.nn.tanh(self.z_5) #tf.nn.relu(self.z_5)
         self.a_5_dropout = tf.nn.dropout(self.a_5, self.keep_prob)
         #输出层
         self.W_5 = tf.Variable(tf.zeros([256, 10]))
@@ -99,21 +99,23 @@ class Mlp_Engine(object):
         self.z_6 = tf.matmul(self.a_5_dropout, self.W_5) + self.b_6
         self.y_ = tf.nn.softmax(self.z_6)
         #训练部分
-        self.cross_entropy = tf.reduce_mean(-tf.reduce_sum(self.y * tf.log(self.y_), 
+        self.cross_entropy = tf.reduce_mean(-tf.reduce_sum(
+                        self.y * tf.log(self.y_), 
                         reduction_indices=[1]))
         #train_step = tf.train.AdagradOptimizer(0.3).minimize(cross_entropy)
-        self.loss = self.cross_entropy + self.lanmeda*(tf.reduce_sum(self.W_1**2) + 
+        self.loss = self.cross_entropy + self.lanmeda*(
+                tf.reduce_sum(self.W_1**2) + 
                 tf.reduce_sum(self.W_2**2) + tf.reduce_sum(self.W_3**2) + 
                 tf.reduce_sum(self.W_4**2) + tf.reduce_sum(self.W_5**2))
-        self.train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, 
-                beta2=0.999, epsilon=1e-08, use_locking=False, 
+        self.train_step = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9,
+                beta2=0.999, epsilon=1e-08, use_locking=False,
                 name='Adam').minimize(self.loss)
-        self.correct_prediction = tf.equal(tf.arg_max(self.y_, 1), tf.arg_max(self.y, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-        #self.saveModelTensor(X, y, W_1, b_2, z_2, a_2, W_2, b_3, z_3, y_, 
-        #        cross_entropy, loss, train_step, correct_prediction, accuracy)
-        return self.X, self.y_, self.y, self.keep_prob, self.cross_entropy, self.train_step, \
-                self.correct_prediction, self.accuracy
+        self.correct_prediction = tf.equal(tf.arg_max(self.y_, 1),
+                        tf.arg_max(self.y, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
+                        tf.float32))
+        return self.X, self.y_, self.y, self.keep_prob, self.cross_entropy, \
+                self.train_step, self.correct_prediction, self.accuracy
     
     def train(self, mode=TRAIN_MODE_NEW, ckpt_file='work/lgr.ckpt'):
         X_train, y_train, X_validation, y_validation, X_test, \

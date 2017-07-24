@@ -16,9 +16,7 @@ class Sda_Engine(object):
     
     def __init__(self):
         self.datasets_dir = 'datasets/'
-        self.random_seed = 1 # 用于测试目的，使每次生成的随机数相同
-        # 堆叠自动编码机属性
-        # 调优属性
+        self.random_seed = 1 
         self.dae_W = []
         self.dae_b = []
         self.daes = []
@@ -31,7 +29,8 @@ class Sda_Engine(object):
             dae_str = 'dae_' + str(idx+1)
             name = self.name + '_' + dae_str
             tf_graph = tf.Graph()
-            self.daes.append(Dae_Engine(name, tf_graph=tf_graph, n=prev, hidden_size=layer))
+            self.daes.append(Dae_Engine(name, tf_graph=tf_graph, n=prev, 
+                            hidden_size=layer))
             prev = layer
             self.dae_graphs.append(tf_graph)
         
@@ -46,7 +45,9 @@ class Sda_Engine(object):
         for idx, dae in enumerate(self.daes):
             print('pretrain:{0}'.format(dae.name))
             tf_graph = self.dae_graphs[idx]
-            X_train_prev, X_validation_prev = self.pretrain_dae(self.dae_graphs[idx], dae, X_train_prev, X_validation_prev)
+            X_train_prev, X_validation_prev = self.pretrain_dae(
+                            self.dae_graphs[idx], dae, 
+                            X_train_prev, X_validation_prev)
         return X_train_prev, X_validation_prev
         
     def pretrain_dae(self, graph, dae, X_train, X_validation):

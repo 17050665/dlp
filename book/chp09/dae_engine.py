@@ -12,14 +12,15 @@ class Dae_Engine(object):
     TRAIN_MODE_NEW = 1
     TRAIN_MODE_CONTINUE = 2
     
-    def __init__(self, name='dae', tf_graph=tf.Graph(), n=784, hidden_size=1024):
+    def __init__(self, name='dae', tf_graph=tf.Graph(), 
+                    n=784, hidden_size=1024):
         self.datasets_dir = 'datasets/'
         self.name = name
-        self.random_seed = 1 # 用于测试目的，使每次生成的随机数相同
+        self.random_seed = 1
         self.input_data = None
         self.input_labels = None
         self.keep_prob = None
-        self.layer_nodes = []  # list of layers of the final network
+        self.layer_nodes = []
         self.train_step = None
         self.cost = None
         # tensorflow objects
@@ -31,17 +32,17 @@ class Dae_Engine(object):
         self.loss_func = 'cross_entropy'
         self.enc_act_func = tf.nn.tanh
         self.dec_act_func = tf.nn.tanh
-        self.num_epochs = 1 # 10
+        self.num_epochs = 10
         self.batch_size = 10
-        self.opt = 'adam' # 优化算法：sgd, adagrand, momentum
+        self.opt = 'adam'
         self.learning_rate = 0.01
         self.momentum = 0.9
-        self.corr_type = 'masking' # 噪音方式：none, salt_and_pepper, masking
-        self.corr_frac = 0.1 # 加入噪音比例
-        self.regtype = 'l2' # 调整技术类别：none l1, l2
-        self.regcoef = 5e-4 # 调整项系数
-        self.n = n # 输入向量维度
-        self.hidden_size = hidden_size # 隐藏层大小
+        self.corr_type = 'masking'
+        self.corr_frac = 0.1
+        self.regtype = 'l2'
+        self.regcoef = 5e-4
+        self.n = n
+        self.hidden_size = hidden_size
         
     def run(self):
         ckpt_file='work/{0}.ckpt'.format(self.name)
@@ -87,25 +88,32 @@ class Dae_Engine(object):
             with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
                 for epoch in range(self.num_epochs):
-                    X_train_prime = self.add_noise(sess, X_train, self.corr_frac)
+                    X_train_prime = self.add_noise(sess, X_train, 
+                                    self.corr_frac)
                     shuff = list(zip(X_train, X_train_prime))
                     np.random.shuffle(shuff)
-                    batches = [_ for _ in self.gen_mini_batches(shuff, self.batch_size)]
+                    batches = [_ for _ in self.gen_mini_batches(shuff, 
+                                    self.batch_size)]
                     batch_idx = 1
                     for batch in batches:
                         X_batch_raw, X_prime_batch_raw = zip(*batch)
                         X_batch = np.array(X_batch_raw).astype(np.float32)
-                        X_prime_batch = np.array(X_prime_batch_raw).astype(np.float32)
+                        X_prime_batch = np.array(X_prime_batch_raw).\
+                                        astype(np.float32)
                         batch_idx += 1
-                        opv, loss = sess.run([self.train_op, self.J], feed_dict={self.X: X_prime_batch, self.y: X_batch})
+                        opv, loss = sess.run([self.train_op, self.J], 
+                                        feed_dict={self.X: X_prime_batch, 
+                                        self.y: X_batch})
                         if batch_idx % 1000 == 0:
-                            print('epoch{0}_batch{1}: {2}'.format(epoch, batch_idx, loss))
+                            print('epoch{0}_batch{1}: {2}'.format(epoch, 
+                                            batch_idx, loss))
                             saver.save(sess, ckpt_file)
             
     def add_noise(self, sess, X, corr_frac):
         X_prime = X.copy()
         rand = tf.random_uniform(X.shape)
-        X_prime[sess.run(tf.nn.relu(tf.sign(corr_frac - rand))).astype(np.bool)] = 0
+        X_prime[sess.run(tf.nn.relu(tf.sign(corr_frac - rand))).\
+                        astype(np.bool)] = 0
         return X_prime
         
     def gen_mini_batches(self, X, batch_size):
@@ -141,7 +149,8 @@ class Dae_Engine(object):
                 tf.multiply(self.y, tf.log(r_y_)),
                 tf.multiply(tf.subtract(1.0, self.y), tf.log(r_1_y_))))
         self.J = cost + self.regcoef * tf.nn.l2_loss([self.W1])
-        self.train_op = tf.train.AdamOptimizer(0.001,0.9,0.9,1e-08).minimize(self.J)
+        self.train_op = tf.train.AdamOptimizer(0.001,0.9,0.9,1e-08).\
+                        minimize(self.J)
 
         
     def transform(self, graph, data):

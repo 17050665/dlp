@@ -12,18 +12,18 @@ class Rbm_Engine(object):
     TRAIN_MODE_NEW = 1
     TRAIN_MODE_CONTINUE = 2
     
-    def __init__(self, name='rbm'):
+    def __init__(self, name='rbm', tf_graph=None, n=784, num_hidden=250):
         self.datasets_dir = 'datasets/'
         self.random_seed = 1 # 用于测试目的，使每次生成的随机数相同
         self.name = name
         #self.loss_func = loss_func
         self.learning_rate = 0.0001
-        self.num_epochs = 50
+        self.num_epochs = 10
         self.batch_size = 128
         self.regtype = 'l2'
         self.regcoef = 0.00001
         #self.loss = Loss(self.loss_func)
-        self.num_hidden = 250
+        self.num_hidden = num_hidden
         self.visible_unit_type = 'bin'
         self.gibbs_sampling_steps = 3
         self.stddev = 0.1
@@ -37,12 +37,11 @@ class Rbm_Engine(object):
         self.input_data = None
         self.hrand = None
         self.vrand = None
-        self.tf_graph = tf.Graph()
-        self.n = 784 # 28*28黑白图片
+        self.tf_graph = tf_graph
+        self.n = n # 28*28黑白图片
         
-    def train(self, mode=TRAIN_MODE_NEW, ckpt_file='work/rbm.ckpt'):
-        X_train, y_train, X_validation, y_validation, X_test, \
-                y_test, mnist = self.load_datasets()
+    def train(self, X_train, X_validation, mode=TRAIN_MODE_NEW):
+        ckpt_file='work/{0}.ckpt'.format(self.name)
         with self.tf_graph.as_default():
             self.build_model()
             saver = tf.train.Saver()
@@ -63,7 +62,17 @@ class Rbm_Engine(object):
                                         batch.shape[1])})
                         if (epoch*total_batches + idx) % 100 == 0:
                             saver.save(sess, ckpt_file)
-                        print('{0}_{1}:cost={2} {3}, {4}'.format(epoch, idx, cost_val, type(spos), spos.shape))
+                        print('{0}_{1}:cost={2} {3}, {4}'.format(epoch, idx, cost_val,
+                                type(spos), spos.shape))
+        
+    def transform(self, graph, data):
+        ckpt_file='work/{0}.ckpt'.format(self.name)
+        with self.tf_graph.as_default():
+            saver = tf.train.Saver()
+            with tf.Session() as sess:
+                saver.restore(sess, ckpt_file)
+                feed = {self.X: data}
+                return sess.run(self.hprob, feed_dict=feed)
         
     def gen_mini_batches(self, X, batch_size):
         X = np.array(X)
@@ -92,6 +101,7 @@ class Rbm_Engine(object):
         hprob0, hstate0, vprob, hprob1, hstate1 = self.gibbs_sampling_step(
                     self.X, self.n)
         self.vprob = vprob
+        self.hprob = hprob1
         self.positive = self.compute_positive_association(self.X,
                                                      hprob0, hstate0)
         nn_input = vprob

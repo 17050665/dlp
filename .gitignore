@@ -3,6 +3,5 @@
 *.pyc
 *.gz
 lib/tf/
-lib/cherrypy/
 upload/
 __pycache__/

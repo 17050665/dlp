@@ -1,0 +1,58 @@
+
+            </div>
+            <div class="weui-tabbar">
+                <a href="javascript:;" class="weui-tabbar__item weui-bar__item_on">
+                    <span style="display: inline-block;position: relative;">
+                        <img src="/web/resources/images/exercise_sel.png" alt="" class="weui-tabbar__icon">
+                        <span class="weui-badge" style="position: absolute;top: -2px;right: -13px;">8</span>
+                    </span>
+                    <p class="weui-tabbar__label">做题</p>
+                </a>
+                <a href="javascript:;" class="weui-tabbar__item">
+                    <img src="/web/resources/images/learn.png" alt="" class="weui-tabbar__icon">
+                    <p class="weui-tabbar__label">学习</p>
+                </a>
+                <a href="javascript:;" class="weui-tabbar__item">
+                    <span style="display: inline-block;position: relative;">
+                        <img src="/web/resources/images/ask.png" alt="" class="weui-tabbar__icon">
+                        <span class="weui-badge weui-badge_dot" style="position: absolute;top: 0;right: -6px;"></span>
+                    </span>
+                    <p class="weui-tabbar__label">提问</p>
+                </a>
+                <a href="javascript:;" class="weui-tabbar__item">
+                    <img src="/web/resources/images/score.png" alt="" class="weui-tabbar__icon">
+                    <p class="weui-tabbar__label">成就</p>
+                </a>
+                <a href="javascript:;" class="weui-tabbar__item">
+                    <img src="/web/resources/images/more.png" alt="" class="weui-tabbar__icon">
+                    <p class="weui-tabbar__label">更多</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $('.weui-tabbar__item').on('click', function () {
+            $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
+            $(".weui-tabbar__icon").each(function(idx, elem) {
+                var imgSrc = elem.src;
+                if (imgSrc.indexOf("_sel.png") > 0) {
+                    elem.src = imgSrc.substring(0, imgSrc.length-8) + ".png";
+                }
+            });
+            var imgSrc = $(this).children(".weui-tabbar__icon").attr("src");
+            var imgObj = $(this).children(".weui-tabbar__icon");
+            if (!imgSrc) {
+                imgSrc = $(this).children("span").children("img.weui-tabbar__icon").attr("src");
+                imgObj = $(this).children("span").children("img.weui-tabbar__icon");
+            }
+            imgObj.attr("src", imgSrc.substring(0, imgSrc.length-4) + "_sel.png");
+        });
+    });
+</script>
+    <script src="/web/resources/js/zepto.min.js"></script>
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js"></script>
+</body>
+</html>

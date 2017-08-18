@@ -1,5 +1,6 @@
 import sys
 sys.path.append('./lib/cherrypy')
+sys.path.append('./lib/jinja')
 import cherrypy
 import json
 from jinja2 import Template

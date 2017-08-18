@@ -19,6 +19,7 @@ class Db_Pool_Cleaner(threading.Thread):
         self.db_pool = db_pool
         self.duration = duration
         self.interval = interval
+        self.is_stopping = False
 
     def run(self):
         curr_time = time.time()
@@ -30,6 +31,8 @@ class Db_Pool_Cleaner(threading.Thread):
                 item['use_time'] = 0
         self.db_pool_lock.release()
         time.sleep(self.duration + self.interval)
+        if self.is_stopping:
+            return
         self.run()
 
 def create_rdb_conn():
@@ -56,13 +59,13 @@ def _init_db_pool(db_pool, db_pool_num, create_db_conn_func):
         db_pool.append({'idx': idx, 'conn': conn, 'state': state, \
                         'use_time': use_time})
 
-rdb_pool_cleaner = Db_Pool_Cleaner(rdb_pool, rdb_pool_lock, 3600, 100)
-wdb_pool_cleaner = Db_Pool_Cleaner(wdb_pool, wdb_pool_lock, 3600, 100)
+ag.rdb_pool_cleaner = Db_Pool_Cleaner(rdb_pool, rdb_pool_lock, 3600, 100)
+ag.wdb_pool_cleaner = Db_Pool_Cleaner(wdb_pool, wdb_pool_lock, 3600, 100)
 def init_db_pool():
     _init_db_pool(rdb_pool, rdb_pool_num, create_rdb_conn)
     _init_db_pool(wdb_pool, wdb_pool_num, create_wdb_conn)
-    rdb_pool_cleaner.start()
-    wdb_pool_cleaner.start()
+    ag.rdb_pool_cleaner.start()
+    ag.wdb_pool_cleaner.start()
 
 def _get_db_connection(db_pool, db_pool_lock):
     db_pool_lock.acquire()

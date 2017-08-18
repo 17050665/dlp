@@ -11,8 +11,8 @@ def init_wky_queues():
     ag.result_q = queue.Queue(maxsize=10)
     ag.task_q_thread = tq.Task_Q_Thread()
     ag.task_q_thread.start()
-    result_q_thread = rq.Result_Q_Thread()
-    result_q_thread.start()
+    ag.result_q_thread = rq.Result_Q_Thread()
+    ag.result_q_thread.start()
     # 
     '''
     ag.img_csf_q = queue.Queue(maxsize=10)

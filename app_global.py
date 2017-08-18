@@ -3,7 +3,8 @@ import os
 dataset_dir = os.getcwd() + '/data/'
 ann_mf_dir = os.getcwd() + '/repository/'
 web_dir = os.getcwd() + '/view/'
-upload_dir = os.getcwd() + os.path.sep + 'upload' + os.path.sep
+upload_dir = os.getcwd().replace('\\', '/') + '/upload/'
+resources_dir = os.getcwd().replace('\\', '/') + '/resources/'
 
 shared_key = 'wky'
 

@@ -29,8 +29,8 @@ class Ajax_Controller(object):
         fullname = 'controller.' + filename
         mdl = __import__(fullname, globals(), locals(), [class_name])
         class_t = getattr(mdl, class_name)
-        obj = class_t()
-        mtd = getattr(obj, method_name)
+        #obj = class_t()
+        mtd = getattr(class_t, method_name)
         return mtd(params)
         '''
         obj = sys.modules[fullname]

@@ -23,6 +23,6 @@ def startup():
     cherrypy.tree.mount(ajax_controller, '/ajax', web_conf.app_conf)
     cherrypy.tree.mount(upload_controller, '/upload', {'/upload': {}})
     cherrypy.engine.start()
-    cherrypy.engine.block()
+    #cherrypy.engine.block()
 
 

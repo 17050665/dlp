@@ -28,7 +28,7 @@ class CQues(object):
         ques_num = excs.get_excs_ques_num(excs_id)
         ques_id, ques_type_id = excs.get_excs_ques(excs_id, ques_seq)
         
-        tpl_loader = jinja2.FileSystemLoader(searchpath='D:/')
+        tpl_loader = jinja2.FileSystemLoader(searchpath='/')
         tpl_env = jinja2.Environment(loader=tpl_loader)
         ques_stem_file = '{0}tpl/qs_{1}.html'.format(ag.resources_dir, ques_type_id)
         ques_stem_tpl = tpl_env.get_template(ques_stem_file)

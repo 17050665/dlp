@@ -8,6 +8,7 @@ import jinja2 as jinja2
 import conf.web_conf as web_conf
 import app_global as ag
 import model.mf_excs as excs
+from model.m_stut_ques_ansr import MStutQuesAnsr as MStutQuesAnsr
 
 class CQues(object):
     exposed = True
@@ -28,12 +29,18 @@ class CQues(object):
         ques_num = excs.get_excs_ques_num(excs_id)
         ques_id, ques_type_id = excs.get_excs_ques(excs_id, ques_seq)
         
-        tpl_loader = jinja2.FileSystemLoader(searchpath='/')
+        tpl_loader = jinja2.FileSystemLoader(searchpath=ag.jinja2_searchpath)
         tpl_env = jinja2.Environment(loader=tpl_loader)
-        ques_stem_file = '{0}tpl/qs_{1}.html'.format(ag.resources_dir, ques_type_id)
+        ques_stem_tpl_file = excs.get_ques_stem_file(ques_id)
+        ques_stem_file = '{0}{1}'.format(ag.resources_dir, ques_stem_tpl_file)
         ques_stem_tpl = tpl_env.get_template(ques_stem_file)
+        ques_stem_page_params = {}
         ques_stem_dict = excs.get_ques_stem_param(ques_id)
-        html_str = ques_stem_tpl.render({'ques_num': ques_num, 'ques_seq': ques_seq, 'title': ques_stem_dict['title']})
+        for key, val in ques_stem_dict.items():
+            ques_stem_page_params[key] = val
+        ques_stem_page_params['ques_num'] = ques_num
+        ques_stem_page_params['ques_seq'] = ques_seq
+        html_str = ques_stem_tpl.render(ques_stem_page_params)
         html_str += '<div class="weui-cells weui-cells_radio">'
         optns = excs.get_ques_optns(ques_id)
         for optn in optns:
@@ -44,7 +51,13 @@ class CQues(object):
                 check_status = 'checked=true'
             else:
                 check_status = ''
-            html_str += optn_tpl.render({'optn_id': 'o_{0}_{1}_{2}_{3}'.format(stut_id, excs_id, ques_id, optn[0]), 'optn_text': optn_param_dict['optn_text'], 'checked_status': check_status, 'optn_x_id': optn[0]})
+            optn_page_param = {}
+            for key, val in optn_param_dict.items():
+                optn_page_param[key] = val
+            optn_page_param['optn_id'] = 'o_{0}_{1}_{2}_{3}'.format(stut_id, excs_id, ques_id, optn[0])
+            optn_page_param['checked_status'] = check_status
+            optn_page_param['optn_x_id'] = optn[0]
+            html_str += optn_tpl.render(optn_page_param)
         html_str += '</div>'
         fo = open('{0}tpl/qs_{1}.js'.format(ag.resources_dir, ques_type_id), 'r', encoding='utf-8')
         try:
@@ -59,4 +72,37 @@ class CQues(object):
         resp['ques_num'] = ques_num
         resp['html'] = html_str
         return resp
+        
+    @staticmethod
+    def submit_optn(req_args):
+        ''' 获取题目的HTML内容 '''
+        json_obj = req_args['kwargs']['json_obj']
+        stut_id = json_obj['stut_id']
+        excs_id = json_obj['excs_id']
+        ques_id = json_obj['ques_id']
+        ques_optn_id = json_obj['optn_id']
+        stut_ques_id = excs.get_stut_ques_id(excs_id, ques_id, stut_id)
+        ques_type_id = excs.get_ques_type(ques_id)
+        if 1 == ques_type_id:
+            MStutQuesAnsr.delete_ques_ansr(stut_ques_id)
+            stut_ques_ansr_id = MStutQuesAnsr.submit_ques_ansr(stut_ques_id, ques_optn_id, 'Y', 1)
+        resp = {}
+        resp['status'] = 'Ok'
+        resp['stut_ques_ansr_id'] = stut_ques_ansr_id
+        return resp
+        
+    @staticmethod
+    def submit_excs(req_args):
+        pass
+        
+    @staticmethod
+    def submit_excs(stut_id, excs_id):
+        ''' 学生按交卷按钮时触发的动作 '''
+        pass
+    
+    @staticmethod
+    def test():
+        req_args = {'args': (), 'kwargs':{'json_obj': {'stut_id': '2', 'excs_id': '1', 'ques_id': '5', 'optn_id': '12'}}}
+        resp = CQues.submit_optn(req_args)
+        print(resp)
 

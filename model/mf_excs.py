@@ -37,7 +37,7 @@ def get_stut_ques(stut_id):
     return rows
 
 def get_ques_stem_file(ques_id):
-    sql = 'select F.file_path from t_ques_stem Q, t_file F where Q.file_id=F.file_id and Q.ques_form_id=1 and Q.ques_id=%s'
+    sql = 'select T.tpl_file from t_ques_stem Q, t_tpl T where Q.tpl_id=T.tpl_id and Q.ques_form_id=1 and Q.ques_id=%s'
     params = (ques_id)
     rowcount, rows = db.query(sql, params)
     return rows[0][0]
@@ -74,6 +74,22 @@ def get_ques_optn_param(ques_optn_id):
     for row in rows:
         param_dict[row[0]] = row[1]
     return param_dict
+    
+def get_stut_ques_id(excs_id, ques_id, stut_id):
+    sql = 'select stut_ques_id from t_stut_ques where excs_id=%s and ques_id=%s and stut_id=%s'
+    params = (excs_id, ques_id, stut_id)
+    rowcount, rows = db.query(sql, params)
+    if rowcount < 1:
+        return 0
+    return rows[0][0]
+    
+def get_ques_type(ques_id):
+    sql = 'select Q.ques_type_id, QT.ques_type_name from t_ques Q, t_ques_type QT where Q.ques_type_id=QT.ques_type_id and Q.ques_id=%s'
+    params = (ques_id)
+    rowcount, rows = db.query(sql, params)
+    if rowcount < 1:
+        return 0
+    return rows[0][0]
     
     
     

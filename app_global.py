@@ -1,10 +1,15 @@
 import os
+import platform
 
 dataset_dir = os.getcwd() + '/data/'
 ann_mf_dir = os.getcwd() + '/repository/'
 web_dir = os.getcwd() + '/view/'
 upload_dir = os.getcwd().replace('\\', '/') + '/upload/'
 resources_dir = os.getcwd().replace('\\', '/') + '/resources/'
+if 'Windows' == platform.system():
+    jinja2_searchpath = 'D:/'
+else:
+    jinja2_searchpath = '/'
 
 shared_key = 'wky'
 

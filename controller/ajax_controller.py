@@ -16,10 +16,10 @@ class Ajax_Controller(object):
 
     @cherrypy.tools.json_out()
     def POST(self, params={}):
+        print('params:{0}'.format(params))
         json_obj = json.loads(params['kwargs']['json_str'])
         del params['kwargs']['json_str']
         params['kwargs']['json_obj'] = json_obj
-        params['kwargs']['cmd'] = json_obj['cmd']
         return self.http_method(params)
 
     def http_method(self, params):

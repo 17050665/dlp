@@ -79,6 +79,7 @@ def _get_db_connection(db_pool, db_pool_lock):
     return None
 
 def close_db_connection(conn_obj):
+    conn_obj['conn'].commit()
     conn_obj['state'] = 0
     conn_obj['use_time'] = 0
 
@@ -117,6 +118,20 @@ def insert_t(conn, sql, params):
     cursor.close()
     pk = cursor.lastrowid
     return (pk, affected_rows)
+    
+def delete(sql, params):
+    conn_obj = get_wdb_connection()
+    conn = conn_obj['conn']
+    result = delete_t(conn, sql, params)
+    close_db_connection(conn_obj)
+    return result
+    
+def delete_t(conn, sql, params):
+    cursor = conn.cursor()
+    affected_rows = cursor.execute(sql, params)
+    conn.commit()
+    cursor.close()
+    return (0, affected_rows)
 
 
 

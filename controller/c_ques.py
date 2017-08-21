@@ -139,7 +139,7 @@ class CQues(object):
             ques_type_id = excs.get_ques_type(ques_id)
             stut_ques_optns = MFExcs.get_stut_ques_optns(stut_id, ques_id)
             if 1 == ques_type_id:
-                if len(stut_ques_optns) and ques_optns[0]['ques_optn_id'] == stut_ques_optns[0]['ques_optn_id']:
+                if len(stut_ques_optns)>0 and ques_optns[0]['ques_optn_id'] == stut_ques_optns[0]['ques_optn_id']:
                     MStutQues.judge_stut_ques(excs_id, ques_id, stut_id, 5.0)
                 else:
                     MStutQues.judge_stut_ques(excs_id, ques_id, stut_id, 0.0)

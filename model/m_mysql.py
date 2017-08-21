@@ -132,6 +132,20 @@ def delete_t(conn, sql, params):
     conn.commit()
     cursor.close()
     return (0, affected_rows)
+    
+def update(sql, params):
+    conn_obj = get_wdb_connection()
+    conn = conn_obj['conn']
+    result = update_t(conn, sql, params)
+    close_db_connection(conn_obj)
+    return result
+    
+def update_t(conn, sql, params):
+    cursor = conn.cursor()
+    affected_rows = cursor.execute(sql, params)
+    conn.commit()
+    cursor.close()
+    return (0, affected_rows)
 
 
 

@@ -91,6 +91,56 @@ def get_ques_type(ques_id):
         return 0
     return rows[0][0]
     
+class MFExcs(object):
+    def __init__(self):
+        pass
+        
+    @staticmethod
+    def get_ques_ansr(ques_id):
+        sql = 'select ques_optn_id, val, seq from t_ques_ansr where ques_id=%s'
+        params = (ques_id)
+        rowcount, rows = db.query(sql, params)
+        if rowcount < 1:
+            return []
+        recs = []
+        for row in rows:
+            rec = {'ques_optn_id': row[0], 'val': row[1], 'seq': row[2]}
+            recs.append(rec)
+        return recs
+        
+    @staticmethod
+    def get_stut_ques_optns(stut_id, ques_id):
+        sql = 'select ques_optn_id, val, seq from t_stut_ques_ansr SQA, t_stut_ques SQ where SQA.stut_ques_id=SQ.stut_ques_id and SQ.stut_id=%s and SQ.ques_id=%s'
+        params = (stut_id, ques_id)
+        rowcount, rows = db.query(sql, params)
+        recs = []
+        if rowcount >= 1:
+            for row in rows:
+                rec = {'ques_optn_id': row[0], 'val': row[1], 'seq': row[2]}
+                recs.append(rec)
+        return recs
+        
+    @staticmethod
+    def get_excs_ques_stut_score(excs_id, ques_id, stut_id):
+        sql = 'select score from t_stut_ques where excs_id=%s and ques_id=%s and stut_id=%s'
+        params = (excs_id, ques_id, stut_id)
+        rowcount, rows = db.query(sql, params)
+        if rowcount < 1:
+            return 0.0
+        return rows[0][0]
+        
+    @staticmethod
+    def get_excs_stut_state_id(excs_id, stut_id):
+        sql = 'select state_id from t_excs_stut where excs_id=%s and stut_id=%s'
+        params = (excs_id, stut_id)
+        rowcount, rows = db.query(sql, params)
+        if rowcount < 1:
+            return 1
+        return rows[0][0]
+        
+    def get_ques_expl_url(ques_id):
+        return 'http://www.sohu.com'
+    
     
     
     

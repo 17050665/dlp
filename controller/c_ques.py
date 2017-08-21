@@ -8,7 +8,10 @@ import jinja2 as jinja2
 import conf.web_conf as web_conf
 import app_global as ag
 import model.mf_excs as excs
+from model.mf_excs import MFExcs as MFExcs
 from model.m_stut_ques_ansr import MStutQuesAnsr as MStutQuesAnsr
+from model.m_excs_stut import MExcsStut as MExcsStut
+from model.m_stut_ques import MStutQues as MStutQues
 
 class CQues(object):
     exposed = True
@@ -23,9 +26,17 @@ class CQues(object):
         stut_id = params['stut_id']
         ques_seq = params['ques_seq']
         if 'excs_id' in params:
-            excs_id = params['excs_id']
+            excs_id = int(params['excs_id'])
         else:
             excs_id = excs.get_excs_id(stut_id)
+        if excs_id < 1:
+            resp = {}
+            resp['status'] = 'Ok'
+            resp['excs_id'] = '0'
+            resp['ques_num'] = '0'
+            resp['html'] = ''
+            return resp
+        
         ques_num = excs.get_excs_ques_num(excs_id)
         ques_id, ques_type_id = excs.get_excs_ques(excs_id, ques_seq)
         
@@ -40,6 +51,18 @@ class CQues(object):
             ques_stem_page_params[key] = val
         ques_stem_page_params['ques_num'] = ques_num
         ques_stem_page_params['ques_seq'] = ques_seq
+        ques_stem_page_params['ques_expl_url'] = MFExcs.get_ques_expl_url(ques_id)
+        ques_stem_page_params['ques_expl_disp'] = 'display: none;'
+        stut_ques_score = MFExcs.get_excs_ques_stut_score(excs_id, ques_id, stut_id)
+        excs_stut_state_id = MFExcs.get_excs_stut_state_id(excs_id, stut_id)
+        if excs_stut_state_id != 1:
+            ques_stem_page_params['ques_expl_disp'] = 'display: block;'
+            if stut_ques_score > 3.0:
+                ques_stem_page_params['ques_result_png'] = 'right.png'
+                ques_stem_page_params['ques_result_display'] = 'block'
+            else:
+                ques_stem_page_params['ques_result_png'] = 'wrong.png'
+                ques_stem_page_params['ques_result_display'] = 'block'
         html_str = ques_stem_tpl.render(ques_stem_page_params)
         html_str += '<div class="weui-cells weui-cells_radio">'
         optns = excs.get_ques_optns(ques_id)
@@ -55,6 +78,10 @@ class CQues(object):
             for key, val in optn_param_dict.items():
                 optn_page_param[key] = val
             optn_page_param['optn_id'] = 'o_{0}_{1}_{2}_{3}'.format(stut_id, excs_id, ques_id, optn[0])
+            if excs_stut_state_id != 1:
+                optn_page_param['disabled_status'] = 'disabled=true'
+            else:
+                optn_page_param['disabled_status'] = ''
             optn_page_param['checked_status'] = check_status
             optn_page_param['optn_x_id'] = optn[0]
             html_str += optn_tpl.render(optn_page_param)
@@ -86,23 +113,44 @@ class CQues(object):
         if 1 == ques_type_id:
             MStutQuesAnsr.delete_ques_ansr(stut_ques_id)
             stut_ques_ansr_id = MStutQuesAnsr.submit_ques_ansr(stut_ques_id, ques_optn_id, 'Y', 1)
+            MStutQues.update_do_date(excs_id, ques_id, stut_id)
         resp = {}
         resp['status'] = 'Ok'
         resp['stut_ques_ansr_id'] = stut_ques_ansr_id
         return resp
         
     @staticmethod
-    def submit_excs(req_args):
-        pass
+    def submit_excs_ajax(req_args):
+        stut_id = int(req_args['kwargs']['stut_id'])
+        excs_id = int(req_args['kwargs']['excs_id'])
+        CQues.submit_excs(excs_id, stut_id)
+        resp = {}
+        resp['status'] = 'Ok'
+        return resp
         
     @staticmethod
-    def submit_excs(stut_id, excs_id):
+    def submit_excs(excs_id, stut_id):
         ''' 学生按交卷按钮时触发的动作 '''
-        pass
+        MExcsStut.update_excs_stut_state(excs_id, stut_id)
+        quess = excs.get_excs_quess(excs_id)
+        for ques in quess:
+            ques_id = ques[0]
+            ques_optns = CQues.get_ques_ansr(ques[0])
+            ques_type_id = excs.get_ques_type(ques_id)
+            stut_ques_optns = MFExcs.get_stut_ques_optns(stut_id, ques_id)
+            if 1 == ques_type_id:
+                if len(stut_ques_optns) and ques_optns[0]['ques_optn_id'] == stut_ques_optns[0]['ques_optn_id']:
+                    MStutQues.judge_stut_ques(excs_id, ques_id, stut_id, 5.0)
+                else:
+                    MStutQues.judge_stut_ques(excs_id, ques_id, stut_id, 0.0)
+    
+    @staticmethod
+    def get_ques_ansr(ques_id):
+        return MFExcs.get_ques_ansr(ques_id)
     
     @staticmethod
     def test():
-        req_args = {'args': (), 'kwargs':{'json_obj': {'stut_id': '2', 'excs_id': '1', 'ques_id': '5', 'optn_id': '12'}}}
-        resp = CQues.submit_optn(req_args)
+        req_args = {'args': (), 'kwargs':{'json_obj': {'stut_id': '2', 'excs_id': '1', 'state_id': '2'}}}
+        resp = CQues.submit_excs_ajax(req_args)
         print(resp)
 

@@ -25,6 +25,7 @@ class CQues(object):
         print('生成问题页面HTML内容:{0}'.format(params))
         stut_id = params['stut_id']
         ques_seq = params['ques_seq']
+        major_id = params['major_id']
         if 'excs_id' in params:
             excs_id = int(params['excs_id'])
         else:
@@ -57,6 +58,8 @@ class CQues(object):
         excs_stut_state_id = MFExcs.get_excs_stut_state_id(excs_id, stut_id)
         if excs_stut_state_id != 1:
             ques_stem_page_params['ques_expl_disp'] = 'display: block;'
+            ques_teach_name, ques_teach_url = CQues.get_ques_teach_url(major_id, ques_id, stut_id)
+            ques_stem_page_params['ques_teach_url'] = ques_teach_url
             if stut_ques_score > 3.0:
                 ques_stem_page_params['ques_result_png'] = 'right.png'
                 ques_stem_page_params['ques_result_display'] = 'block'
@@ -147,10 +150,34 @@ class CQues(object):
     @staticmethod
     def get_ques_ansr(ques_id):
         return MFExcs.get_ques_ansr(ques_id)
+        
+    @staticmethod
+    def get_ques_teach_url_ajax(req_args):
+        ''' 获取题目讲解链接 '''
+        params = req_args['kwargs']
+        stut_id = params['stut_id']
+        major_id = params['major_id']
+        ques_id = params['ques_id']
+        ques_teach_name, ques_teach_url = CQues.get_ques_teach_url(major_id, ques_id, stut_id)
+        resp = {}
+        resp['status'] = 'Ok'
+        resp['ques_teach_url'] = ques_teach_url
+        resp['ques_teach_name'] = ques_teach_name
+        return resp
+        
+    @staticmethod
+    def get_ques_teach_url(major_id, ques_id, stut_id):
+        # 获取学生的首席老师
+        tchr_id = MFExcs.get_chief_tchr_id(stut_id, major_id)
+        print('tchr_id={0}'.format(tchr_id))
+        # 获取讲解视频
+        rec = MFExcs.get_ques_teach_video_url(ques_id, tchr_id)
+        # 返回结果
+        return rec['ques_teach_name'], rec['video_file_url']
     
     @staticmethod
     def test():
-        req_args = {'args': (), 'kwargs':{'json_obj': {'stut_id': '2', 'excs_id': '1', 'state_id': '2'}}}
-        resp = CQues.submit_excs_ajax(req_args)
+        req_args = {'args': (), 'kwargs':{'stut_id': '2', 'major_id': '8', 'ques_id': '1'}}
+        resp = CQues.get_ques_teach_url_ajax(req_args)
         print(resp)
 

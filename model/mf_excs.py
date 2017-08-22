@@ -138,6 +138,25 @@ class MFExcs(object):
             return 1
         return rows[0][0]
         
+    @staticmethod
+    def get_chief_tchr_id(stut_id, major_id):
+        sql = 'select CMT.tchr_id from t_class_stut CS, t_class_major CM, t_class_major_tchr CMT where CS.class_id=CM.class_id and CM.class_major_id=CMT.class_major_id and CS.stut_id=%s and CM.major_id=%s and sysdate()>=CS.start_date and sysdate()<CS.end_date;'
+        params = (stut_id, major_id)
+        rowcount, rows = db.query(sql, params)
+        if rowcount < 1:
+            return 0
+        return rows[0][0]
+        
+    @staticmethod
+    def get_ques_teach_video_url(ques_id, tchr_id):
+        sql = 'select QT.ques_teach_name, QT.video_file_id, F.file_url from t_ques_teach QT, t_file F where QT.video_file_id=F.file_id and QT.ques_id=%s and QT.tchr_id=%s';
+        params = (ques_id, tchr_id)
+        rowcount, rows = db.query(sql, params)
+        if rowcount < 1:
+            return '';
+        rst = {'ques_teach_name': rows[0][0], 'video_file_url': rows[0][2]}
+        return rst
+        
     def get_ques_expl_url(ques_id):
         return 'http://www.sohu.com'
     

@@ -8,16 +8,19 @@ import model.m_mysql as db
 import app_web as app_web
 import common.wky_queues as wqs
 #
-from controller.c_ques import CQues as CQues
-
+from apps.esp.esp_main import EspMain as EspMain
 
 def test1():
     # 试验读取静态方法
-    CQues.test()
-
+    #CQues.test()
+    db.init_db_pool()
+    CRecommendEngine.test()
+    
+def test_esp():
+    EspMain.startup({})
+    
 if __name__ == '__main__':
     print('starting up...')
-    db.init_db_pool()
-    test1()
-    
+    #test1()
+    test_esp()
     

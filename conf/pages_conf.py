@@ -1,4 +1,11 @@
 pages_conf = {
+        "show_login": {
+            "header": "",
+            "left": "",
+            "body": "login.html",
+            "right": "",
+            "footer": ""
+        },
         "show_exercise": {
             "header": "header.html",
             "left": "",

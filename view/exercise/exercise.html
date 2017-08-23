@@ -26,7 +26,7 @@ $(document).ready(function() {
 });
 
 function get_ques() {
-    var stut_id = 2;
+    var stut_id = parseInt(localStorage.getItem("user_id"));
     var major_id = 8;
     var req_url = "http://" + location.host + "/ajax?f=c_ques&c=CQues&m=get_ques_html&stut_id=" + stut_id + "&ques_seq=" + g_ques_seq + "&major_id=" + major_id;
     if (g_excs_id > 0) {
@@ -73,7 +73,7 @@ function get_next_ques() {
 }
 
 function submit_excs() {
-    var stut_id = 2;
+    var stut_id = parseInt(localStorage.getItem("user_id"));
     var req_url = "http://" + location.host + "/ajax?f=c_ques&c=CQues&m=submit_excs_ajax&stut_id=" + stut_id;
     if (g_excs_id > 0) {
         req_url += "&excs_id=" + g_excs_id;

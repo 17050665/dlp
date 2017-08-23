@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from app_global import appGlobal as ag
+from apps.des.app_global import appGlobal as desAg
+from model.mf_recommend_engine import MFRecommendEngine as MFRecommendEngine
 
 class RecommendEngine(object):
     def __init__(self):
@@ -14,8 +15,9 @@ class RecommendEngine(object):
         
     def run(self):
         self.Y_ph, self.r, self.mu = self.load_dataset()
+        print('y_ph:{0}'.format(self.Y_ph))
         self.train()
-        self.predict(4, 2)
+        self.predict(3, 4)
         
     def predict(self, ui, xi):
         print(self.Xv[xi])
@@ -24,63 +26,7 @@ class RecommendEngine(object):
         print(np.dot(self.Xv[xi], Uv[ui]) + self.mu[xi][0])
         
     def load_dataset(self):
-        ph = np.zeros(shape=(self.nm, self.nu), dtype=np.float32)
-        r = np.ones(shape=(self.nm, self.nu), dtype=np.int32)
-        # first row
-        ph[0][0] = 5.0
-        r[0][0] = 1
-        ph[0][1] = 5.0
-        r[0][1] = 1
-        ph[0][2] = 0.0
-        r[0][2] = 1
-        ph[0][3] = 0.0
-        r[0][3] = 1
-        ph[0][4] = -1.0
-        r[0][4] = 0
-        # second row
-        ph[1][0] = 5.0
-        r[1][0] = 1
-        ph[1][1] = -1.0
-        r[1][1] = 0
-        ph[1][2] = -1.0
-        r[1][2] = 0
-        ph[1][3] = 0.0
-        r[1][3] = 1
-        ph[1][4] = -1.0
-        r[1][4] = 0
-        # third row
-        ph[2][0] = -1.0
-        r[2][0] = 0
-        ph[2][1] = 4.0
-        r[2][1] = 1
-        ph[2][2] = 0.0
-        r[2][2] = 1
-        ph[2][3] = -1.0
-        r[2][3] = 0
-        ph[2][4] = -1.0
-        r[2][4] = 0
-        # forth row
-        ph[3][0] = 0.0
-        r[3][0] = 1
-        ph[3][1] = 0.0
-        r[3][1] = 1
-        ph[3][2] = 5.0
-        r[3][2] = 1
-        ph[3][3] = 4.0
-        r[3][3] = 1
-        ph[3][4] = -1.0
-        r[3][4] = 0
-        # fifth row
-        ph[4][0] = 0.0
-        r[4][0] = 1
-        ph[4][1] = 0.0
-        r[4][1] = 1
-        ph[4][2] = 5.0
-        r[4][2] = 1
-        ph[4][3] = 0.0
-        r[4][3] = 1
-        ph[4][4] = -1.0
-        r[4][4] = 0
+        self.n, self.nm, self.nu, ph, r = MFRecommendEngine.load_dataset()
         # 求出mu
         mu = np.zeros(shape=(self.nm, 1))
         for row in range(self.nm):

@@ -135,12 +135,14 @@ class CQues(object):
     def submit_excs(excs_id, stut_id):
         ''' 学生按交卷按钮时触发的动作 '''
         MExcsStut.update_excs_stut_state(excs_id, stut_id)
+        print('#########################  e:{0}; s:{1}'.format(excs_id, stut_id))
         quess = excs.get_excs_quess(excs_id)
         for ques in quess:
             ques_id = ques[0]
             ques_optns = CQues.get_ques_ansr(ques[0])
             ques_type_id = excs.get_ques_type(ques_id)
             stut_ques_optns = MFExcs.get_stut_ques_optns(stut_id, ques_id)
+            print('stut_ques_optns:[{0}] vs ansr:[{1}]'.format(stut_ques_optns, ques_optns))
             if 1 == ques_type_id:
                 if len(stut_ques_optns)>0 and ques_optns[0]['ques_optn_id'] == stut_ques_optns[0]['ques_optn_id']:
                     MStutQues.judge_stut_ques(excs_id, ques_id, stut_id, 5.0)

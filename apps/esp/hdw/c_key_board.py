@@ -28,7 +28,7 @@ class CKeyBoard(ctypes.Structure):
     @staticmethod
     def press_key(hexKeyCode):
         CKeyBoard.key_down(hexKeyCode)
-        #time.sleep(1)
+        time.sleep(0.1)
         CKeyBoard.key_up(hexKeyCode)
         #time.sleep(1)
         

@@ -9,6 +9,7 @@ import app_web as app_web
 import common.wky_queues as wqs
 #
 from apps.esp.esp_main import EspMain as EspMain
+from apps.rgl.rgl_main import RglMain as RglMain
 
 def test1():
     # 试验读取静态方法
@@ -17,7 +18,8 @@ def test1():
     CRecommendEngine.test()
     
 def test_esp():
-    EspMain.startup({})
+    #EspMain.startup({})
+    RglMain.startup({})
     
 if __name__ == '__main__':
     print('starting up...')

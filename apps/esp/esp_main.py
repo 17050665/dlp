@@ -212,7 +212,8 @@ class EspMain(object):
     @staticmethod
     def startup(params):
         inres = SlimInresV2()
-        inres.predict('d:/awork/d1.jpg')
+        #inres.predict('d:/awork/d3.jpg')
+        inres.predict('D:/abiz/esp/projects/gile/x64/Debug/work/c2017_9_7_12_13_50/screens/d00/d00/d00/d00/d07/s_03.png')
         
         
         

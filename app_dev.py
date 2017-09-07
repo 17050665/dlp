@@ -8,7 +8,7 @@ import model.m_mysql as db
 import app_web as app_web
 import common.wky_queues as wqs
 #
-from apps.esp.esp_main import EspMain as EspMain
+#from apps.esp.esp_main import EspMain as EspMain
 from apps.rgl.rgl_main import RglMain as RglMain
 
 def test1():

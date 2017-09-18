@@ -10,6 +10,7 @@ import common.wky_queues as wqs
 #
 #from apps.esp.esp_main import EspMain as EspMain
 from apps.rgl.rgl_main import RglMain as RglMain
+from apps.gile.udp_server import UdpServer as UdpServer
 
 def test1():
     # 试验读取静态方法
@@ -24,5 +25,6 @@ def test_esp():
 if __name__ == '__main__':
     print('starting up...')
     #test1()
-    test_esp()
+    #test_esp()
+    UdpServer.startup('', 8088, 1024)
     

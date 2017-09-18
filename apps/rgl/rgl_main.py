@@ -5,6 +5,8 @@ import execjs
 import json
 import demjson
 import csv
+from apps.rgl.seph_spider import SephSpider as SephSpider
+from apps.rgl.website_stats import WebsiteStats as WebsiteStats
 
 class RglMain(object):
     pc_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
@@ -87,7 +89,7 @@ class RglMain(object):
         RglMain.get_alexa_pv_num(website)
     
     @staticmethod
-    def startup(params):
+    def run_normal_spider(params):
         crack_website_file = 'd:/awork/crack_website.csv'
         recs = []
         with open(crack_website_file, 'r', newline='') as csv_file:
@@ -110,6 +112,11 @@ class RglMain(object):
                 print('write:{0}'.format(rec))
                 cw.writerow(rec)
         
+    @staticmethod
+    def startup(params):
+        WebsiteStats.run_stats({})
+        #RglMain.run_normal_spider({})
+        #SephSpider.test()
         
         
         

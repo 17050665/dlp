@@ -64,7 +64,7 @@ class SlimInresV2(object):
                         rst['img_rst'] = names[index]
                         rst['probability'] = pros[index]
                         ag.app_db[req_id] = rst
-                        print('运行Tensorflow成功:{0}({1})'.format(rst['img_rst'], rst['probability']))
+                        print('******运行Tensorflow成功:{0}({1})'.format(rst['img_rst'], rst['probability']))
                         params = ag.img_csf_q.get(block=True)
                         
                         

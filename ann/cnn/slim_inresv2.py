@@ -3,6 +3,7 @@ import sys
 sys.path.append('./lib/tf/models/slim')
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties as FontProperties
 from PIL import Image
 import tensorflow as tf
 from datasets import imagenet
@@ -74,6 +75,7 @@ class SlimInresV2(object):
         对给定的图片进行预测，给出Top5类别的名称及可能的概率
         img_file：全路径文件名
         '''
+        print('image file:{0}'.format(img_file))
         names = self.get_imagenet_label_names()
         with tf.Graph().as_default():
             with self.slim.arg_scope(inception_resnet_v2.inception_resnet_v2_arg_scope()):
@@ -96,12 +98,14 @@ class SlimInresV2(object):
                     for i in range(5):
                         index = sorted_inds[i]
                         print((probabilities[index], names[index]))
+                    print('show:{0}'.format(img_file))
                     img = np.array(Image.open(img_file))
                     plt.rcParams['font.sans-serif'] = ['SimHei'] # 在图片上显示中文，如果直接显示形式为：u'内容'
                     plt.rcParams['axes.unicode_minus'] = False # 显示-号
                     plt.figure()
                     plt.imshow(img)
-                    plt.suptitle(names[sorted_inds[0]], fontsize=14, fontweight='bold')
+                    myfont = FontProperties(fname='/usr/share/fonts/truetype/arphic/uming.ttc')
+                    plt.suptitle(names[sorted_inds[0]], fontsize=14, fontweight='bold',fontproperties=myfont)
                     plt.axis('off')
                     plt.show()
                 

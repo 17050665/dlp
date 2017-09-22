@@ -4,5 +4,6 @@
 *.gz
 apps/gile/ndk/libs/
 lib/tf/
+lib/jinja/
 upload/
 __pycache__/

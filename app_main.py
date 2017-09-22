@@ -1,5 +1,6 @@
 import sys
 sys.path.append('./lib/cherrypy')
+sys.path.append('./lib/tf/slim')
 import os
 import cherrypy
 import app_global as ag

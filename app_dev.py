@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import sys
 sys.path.append('./lib/cherrypy')
 sys.path.append('./lib/jinja')

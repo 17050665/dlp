@@ -3,5 +3,6 @@
 *.pyc
 *.gz
 lib/tf/
+lib/jinja/
 upload/
 __pycache__/

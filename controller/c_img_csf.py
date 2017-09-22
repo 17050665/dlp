@@ -10,8 +10,8 @@ class CImgCsf(object):
     def __init__(self):
         self.web_dir = ag.web_dir
         
-    
-    def get_img_csf_rst(self, params):
+    @staticmethod
+    def get_img_csf_rst(params):
         req_id = params['kwargs']['req_id']
         has_rst = 0
         rst = '未知'

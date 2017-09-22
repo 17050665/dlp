@@ -37,6 +37,8 @@ class File_Uploader(object):
         print('########### upload image classification file:%s' % params)
         #if not wky_auth.validate_req(params['kwargs']):
         #    return {'status': 'Error'}
+        req_id = 1001
+        user_id = 2001
         dest_file, uploaded_file, disp_file, raw_disp_file = self.upload_base('files[]', is_img=1, img_size=(200, 200))
         resp_params = {}
         resp_params['req_id'] = req_id
@@ -69,7 +71,7 @@ class File_Uploader(object):
                                           'REQUEST_METHOD': 'POST'},\
                                           keep_blank_values=True)
         #print(form_fields.__dict__)
-        data_file = form_fields[file_emlem] # 'files[]']
+        data_file = form_fields[file_elem_name] # 'files[]']
         req_id = form_fields['req_id'].value
         user_id = form_fields['user_id'].value
         src_file = data_file.file.name

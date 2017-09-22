@@ -4,6 +4,7 @@ import queue
 import app_global as ag
 import common.task_queue as tq
 import common.result_queue as rq
+import common.img_csf_q as iq
 
 def init_wky_queues():
     print('')
@@ -15,7 +16,7 @@ def init_wky_queues():
     ag.result_q_thread.start()
     # 
     ag.img_csf_q = queue.Queue(maxsize=10)
-    ag.img_csf_q_thread = tq.Img_Csf_Q_Thread()
+    ag.img_csf_q_thread = iq.Img_Csf_Q_Thread()
     ag.img_csf_q_thread.start()
 
 

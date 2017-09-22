@@ -37,9 +37,7 @@ class File_Uploader(object):
         print('########### upload image classification file:%s' % params)
         #if not wky_auth.validate_req(params['kwargs']):
         #    return {'status': 'Error'}
-        req_id = 1001
-        user_id = 2001
-        dest_file, uploaded_file, disp_file, raw_disp_file = self.upload_base('files[]', is_img=1, img_size=(200, 200))
+        dest_file, uploaded_file, disp_file, raw_disp_file, req_id, user_id = self.upload_base('files[]', is_img=1, img_size=(200, 200))
         resp_params = {}
         resp_params['req_id'] = req_id
         resp_params['user_id'] = user_id
@@ -51,7 +49,7 @@ class File_Uploader(object):
         
     def upload_img_idf_file(self, params={}, data_file=None):
         print('##### upload image identification file:{0}'.format(params))
-        dest_file, uploaded_file, disp_file, raw_disp_file = self.upload_base('files[]', is_img=1, img_size=(200, 200))
+        dest_file, uploaded_file, disp_file, raw_disp_file, req_id, user_id = self.upload_base('files[]', is_img=1, img_size=(200, 200))
         resp_params = {}
         resp_params['req_id'] = req_id
         resp_params['user_id'] = user_id
@@ -70,7 +68,7 @@ class File_Uploader(object):
                              headers = req_headers, environ = {\
                                           'REQUEST_METHOD': 'POST'},\
                                           keep_blank_values=True)
-        #print(form_fields.__dict__)
+        # print(form_fields.__dict__)
         data_file = form_fields[file_elem_name] # 'files[]']
         req_id = form_fields['req_id'].value
         user_id = form_fields['user_id'].value
@@ -89,6 +87,6 @@ class File_Uploader(object):
         uf.close()
         if 1 == is_img:
             img_util.resize_img_file(dest_file, disp_file, img_size[0], img_size[1], save_quality=35)
-        return (dest_file, uploaded_file, disp_file, raw_disp_file)
+        return (dest_file, uploaded_file, disp_file, raw_disp_file, req_id, user_id)
         
     

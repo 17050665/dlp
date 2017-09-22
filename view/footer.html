@@ -1,58 +1,82 @@
-
-            </div>
-            <div class="weui-tabbar">
-                <a href="javascript:;" class="weui-tabbar__item weui-bar__item_on">
-                    <span style="display: inline-block;position: relative;">
-                        <img src="/web/resources/images/exercise_sel.png" alt="" class="weui-tabbar__icon">
-                        <span class="weui-badge" style="position: absolute;top: -2px;right: -13px;">8</span>
-                    </span>
-                    <p class="weui-tabbar__label">做题</p>
+    <div id="szmenu">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" >
+            <li id="img_csf_tab" role="presentation" class="active">
+                <a href="/web/pages?cmd=show_img_csf">
+                    <img id="img_csf_icon" src="/web/resources/images/tb_rent_sel.png"/>
+                    <span style="display:block;">分类</span>
                 </a>
-                <a href="javascript:;" class="weui-tabbar__item">
-                    <img src="/web/resources/images/learn.png" alt="" class="weui-tabbar__icon">
-                    <p class="weui-tabbar__label">学习</p>
+            </li>
+            <li id="img_idf_tab" role="presentation" class="">
+                <a href="/web/pages?cmd=show_img_idf">
+                    <img id="img_idf_icon" src="/web/resources/images/tb_revert.png"/>
+                    <span style="display:block;">识别</span>
                 </a>
-                <a href="javascript:;" class="weui-tabbar__item">
-                    <span style="display: inline-block;position: relative;">
-                        <img src="/web/resources/images/ask.png" alt="" class="weui-tabbar__icon">
-                        <span class="weui-badge weui-badge_dot" style="position: absolute;top: 0;right: -6px;"></span>
-                    </span>
-                    <p class="weui-tabbar__label">提问</p>
+            </li>
+            <li id="img_seg_tab" role="presentation" class="">
+                <a href="/web/pages?cmd=show_img_seg">
+                    <img id="img_seg_icon" src="/web/resources/images/tb_search.png"/>
+                    <span style="display:block;">分割</span>
                 </a>
-                <a href="javascript:;" class="weui-tabbar__item">
-                    <img src="/web/resources/images/score.png" alt="" class="weui-tabbar__icon">
-                    <p class="weui-tabbar__label">成就</p>
+            </li>
+            <li id="time_sq_tab" role="presentation" class="">
+                <a href="/web/pages?cmd=show_time_sq">
+                    <img id="time_sq_icon" src="/web/resources/images/tb_record.png"/>
+                    <span style="display:block;">时序</span>
                 </a>
-                <a href="javascript:;" class="weui-tabbar__item">
-                    <img src="/web/resources/images/more.png" alt="" class="weui-tabbar__icon">
-                    <p class="weui-tabbar__label">更多</p>
+            </li>
+            <li id="mine_tab" role="presentation" class="">
+                <a href="/web/pages?cmd=show_mine">
+                    <img id="mine_icon" src="/web/resources/images/tb_mine.png"/>
+                    <span style="display:block;">我的</span>
                 </a>
-            </div>
+            </li>
+        </ul>
+        <!-- 上门服务 -->
+        <div id="floatArea" style="position:absolute;bottom:80px;right:20px; display: none;">
+            <a id="mydocbtn" href="#"></a>
         </div>
     </div>
 </div>
 <script type="text/javascript">
-    $(function(){
-        $('.weui-tabbar__item').on('click', function () {
-            $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
-            $(".weui-tabbar__icon").each(function(idx, elem) {
-                var imgSrc = elem.src;
-                if (imgSrc.indexOf("_sel.png") > 0) {
-                    elem.src = imgSrc.substring(0, imgSrc.length-8) + ".png";
-                }
-            });
-            var imgSrc = $(this).children(".weui-tabbar__icon").attr("src");
-            var imgObj = $(this).children(".weui-tabbar__icon");
-            if (!imgSrc) {
-                imgSrc = $(this).children("span").children("img.weui-tabbar__icon").attr("src");
-                imgObj = $(this).children("span").children("img.weui-tabbar__icon");
-            }
-            imgObj.attr("src", imgSrc.substring(0, imgSrc.length-4) + "_sel.png");
-        });
-    });
+$(document).ready(function() {
+    setup_bottom_tab();
+});
+
+function setup_bottom_tab() {
+    $("#img_csf_tab").attr("class", "");
+    $("#img_csf_icon").attr("src", "/web/resources/images/tb_rent.png");
+    $("#img_idf_tab").attr("class", "");
+    $("#img_idf_icon").attr("src", "/web/resources/images/tb_revert.png");
+    $("#img_seg_tab").attr("class", "");
+    $("#img_seg_icon").attr("src", "/web/resources/images/tb_search.png");
+    $("#time_sq_tab").attr("class", "");
+    $("#time_sq_icon").attr("src", "/web/resources/images/tb_record.png");
+    $("#mine_tab").attr("class", "");
+    $("#mine_icon").attr("src", "/web/resources/images/tb_mine.png");
+    switch (g_page_mode) {
+    case 1:
+        $("#img_csf_tab").attr("class", "active");
+        $("#img_csf_icon").attr("src", "/web/resources/images/tb_rent_sel.png");
+        break;
+    case 2:
+        $("#img_idf_tab").attr("class", "active");
+        $("#img_idf_icon").attr("src", "/web/resources/images/tb_revert_sel.png");
+        break;
+    case 3:
+        $("#img_seg_tab").attr("class", "active");
+        $("#img_seg_icon").attr("src", "/web/resources/images/tb_search_sel.png");
+        break;
+    case 4:
+        $("#time_sq_tab").attr("class", "active");
+        $("#time_sq_icon").attr("src", "/web/resources/images/tb_record_sel.png");
+        break;
+    case 5:
+        $("#mine_tab").attr("class", "active");
+        $("#mine_icon").attr("src", "/web/resources/images/tb_mine_sel.png");
+        break;
+    }
+}
 </script>
-    <script src="/web/resources/js/zepto.min.js"></script>
-    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
-    <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js"></script>
 </body>
 </html>

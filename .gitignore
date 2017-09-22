@@ -2,6 +2,7 @@
 *.ckpt
 *.pyc
 *.gz
+apps/gile/ndk/libs/
 lib/tf/
 upload/
 __pycache__/

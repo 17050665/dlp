@@ -1,7 +1,8 @@
 import threading
 import queue
 import app_global as ag
-import apps.lcct.slim_csf_inresv2 as slim_csf_inresv2
+#import apps.cnn.slim_csf_inresv2 as slim_csf_inresv2
+from ann.cnn.slim_inresv2 import SlimInresV2 as SlimInresV2
 #import controller.c_mlp as c_mlp
 
 class Img_Csf_Q_Thread(threading.Thread):
@@ -11,7 +12,7 @@ class Img_Csf_Q_Thread(threading.Thread):
 
     def run(self):
         print('启动图像识别处理线程')
-        sci = slim_csf_inresv2.SlimCsfInResV2()
+        sci = SlimInresV2()
         sci.startup()
         
 

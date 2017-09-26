@@ -4,7 +4,9 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := gile
 
-LOCAL_SRC_FILES := udp_client.c
+LOCAL_SRC_FILES := app_main.c \
+                    udp_client.c \
+                    screen_capture.c
 
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a x86))
     LOCAL_CFLAGS := -DHAVE_NEON=1

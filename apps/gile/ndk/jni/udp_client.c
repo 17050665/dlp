@@ -12,7 +12,7 @@ void run_send_thread(char* send_params);
 void run_recv_thread(char* recv_params);
   
 int port=8088;  
-int main(int argc, char** argv) {
+int start_udp_client() {
     pthread_t send_thread;
     pthread_t recv_thread;
     char send_params[1024];

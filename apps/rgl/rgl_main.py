@@ -1,19 +1,19 @@
-from selenium import webdriver
+#from selenium import webdriver
 import time
 import os
-import pdfkit
+#import pdfkit
 import urllib.request
 
 from bs4 import BeautifulSoup
 import requests
 #from apps.rgl.spider_html_render import SpiderHtmlRender
-import execjs
+#import execjs
 import json
-import demjson
+#import demjson
 import csv
-from apps.rgl.seph_spider import SephSpider as SephSpider
-from apps.rgl.website_stats import WebsiteStats as WebsiteStats
-from apps.rgl.steamdb import SteamDb as SteamDb
+#from apps.rgl.seph_spider import SephSpider as SephSpider
+#from apps.rgl.website_stats import WebsiteStats as WebsiteStats
+#from apps.rgl.steamdb import SteamDb as SteamDb
 
 class RglMain(object):
     pc_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
@@ -29,6 +29,22 @@ class RglMain(object):
         #'Cookie': pc_cookie,
         'User-Agent': pc_user_agent
     }
+
+    @staticmethod
+    def get_steam_app_info(steam_id):
+        url = 'http://store.steampowered.com/app/{0}/Dark_and_Light/'.format(steam_id)
+        wb_data = requests.get(url, headers=RglMain.get_headers)
+        soup = BeautifulSoup(wb_data.text, 'lxml')
+        steam_name_obj = soup.select('body > div.responsive_page_frame.with_header > div.responsive_page_content > div.responsive_page_template_content > div.game_page_background.game > div.page_content_ctn > div.page_title_area.game_title_area.page_content > div.apphub_HomeHeaderContent > div > div.apphub_AppName')
+        steam_name = steam_name_obj[0].string
+        steam_image_obj = soup.select('#game_highlights > div.rightcol > div > div.game_header_image_ctn > img')
+        steam_image = steam_image_obj[0].attrs['src']
+        release_date_obj = soup.select('#game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div.release_date > div.date')
+        release_date = release_date_obj[0].string
+        print('release_date:{0}'.format(release_date))
+        price_obj = soup.select('#game_area_purchase > div > div > div.game_purchase_action > div > div.discount_block.game_purchase_discount > div.discount_prices > div.discount_final_price')
+        price = price_obj[0].string
+        print('price:{0}'.format(price))
     
     @staticmethod
     def get_baidu_weight(url):
@@ -163,7 +179,9 @@ class RglMain(object):
         #WebsiteStats.run_stats({})
         #RglMain.run_normal_spider({})
         #SephSpider.test()
-        SteamDb.get_steam_apps()
+        #SteamDb.get_steam_apps()
+        steam_id = 529180
+        RglMain.get_steam_app_info(steam_id)
         
         #url = 'http://gamersky.com'
         #pngFile = os.getcwd() + '/work/p1.png'

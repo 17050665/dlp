@@ -3,6 +3,7 @@
 *.pyc
 *.gz
 *.o
+*.d
 *.so
 apps/gile/ndk/libs/
 lib/tf/

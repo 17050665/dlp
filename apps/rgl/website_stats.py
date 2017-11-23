@@ -37,11 +37,6 @@ class WebsiteStats(object):
     
     @staticmethod
     def run_stats(params):
-        iDebug = 0
-        if 1 == iDebug:
-            percent = WebsiteStats.get_sub_domain_info('zol.com.cn', 'siazai.zol.com.cn')
-            print('percent={0}'.format(percent/100.0))
-            return 
         crack_website_file = 'd:/awork/rungo/spider/crack_website_list.csv'
         recs = []
         to_be_processed = []
@@ -53,11 +48,10 @@ class WebsiteStats(object):
         rows = to_be_processed
         to_be_processed = []
         
-        while len(rows) > 1 and epoch<3:
-            if epoch != 0:
-                print(rows)
-            try:
-                for row in rows:
+        while len(rows) > 1 and epoch<1:
+            idx = 1
+            for row in rows:
+                try:
                     website = str(row[2])
                     alexa_top, cn_top, class_top, baidu_weight = WebsiteStats.get_all_tops(website)
                     ip_num = WebsiteStats.get_alexa_ip_num(website)
@@ -67,15 +61,16 @@ class WebsiteStats(object):
                         percent = WebsiteStats.get_sub_domain_percent(website, sub_domain)
                         ip_num = int(float(ip_num)*percent)
                         pv_num = int(float(pv_num)*percent)
-                    print('{0}({7}): bw:{1} a:{2} cn:{3} c:{4} IP:{5}, PV:{6}'.format(website, baidu_weight, alexa_top, cn_top, class_top, ip_num, pv_num, sub_domain))
+                    print('{8}:  {0}({7}): bw:{1} a:{2} cn:{3} c:{4} IP:{5}, PV:{6}'.format(website, baidu_weight, alexa_top, cn_top, class_top, ip_num, pv_num, sub_domain, idx))
+                    item = [row[0], row[1], row[2], baidu_weight, alexa_top, cn_top, class_top, ip_num, pv_num]
+                    recs.append(item)
                     if alexa_top<0 or cn_top<0 or class_top<0 or ip_num<0 or pv_num<0:
                         to_be_processed.append(row)
-                    else:
-                        item = [row[0], row[1], row[2], baidu_weight, alexa_top, cn_top, class_top, ip_num, pv_num]
-                        recs.append(item)
                     time.sleep(1)
-            except Exception as ex:
-                pass
+                except Exception as ex:
+                    print('############# Exception: {0}'.format(ex))
+                    pass
+                idx += 1
             rows = to_be_processed
             epoch += 1
         
@@ -86,7 +81,6 @@ class WebsiteStats(object):
             for rec in recs:
                 print('write:{0}'.format(rec))
                 cw.writerow(rec)
-                
                 
     @staticmethod
     def get_all_tops(website):
@@ -144,10 +138,13 @@ class WebsiteStats(object):
             'url': website
         }
         wb_data = requests.post(url, headers=WebsiteStats.post_headers, data=post_data)
-        obj = demjson.decode(wb_data.text)
-        if len(obj) < 1:
-            return -1
-        return int(obj[-1]['data']['IpNum'])
+        try:
+            obj = demjson.decode(wb_data.text)
+            if len(obj) < 1:
+                return -1
+            return int(obj[-1]['data']['IpNum'])
+        except Exception as ex:
+            pass
         
     @staticmethod
     def get_alexa_pv_num(website):        
@@ -156,10 +153,14 @@ class WebsiteStats(object):
             'url': website
         }
         wb_data = requests.post(url, headers=WebsiteStats.post_headers, data=post_data)
-        obj = demjson.decode(wb_data.text)
-        if len(obj) < 1:
-            return -1
-        return int(obj[-1]['data']['PvNum'])
+        try:
+            obj = demjson.decode(wb_data.text)
+            if len(obj) < 1:
+                return -1
+            return int(obj[-1]['data']['PvNum'])
+        except Exception as ex:
+            pass
+        return -1
         
         
         

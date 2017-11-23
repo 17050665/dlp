@@ -1,3 +1,9 @@
+from selenium import webdriver
+import time
+import os
+import pdfkit
+import urllib.request
+
 from bs4 import BeautifulSoup
 import requests
 #from apps.rgl.spider_html_render import SpiderHtmlRender
@@ -7,6 +13,7 @@ import demjson
 import csv
 from apps.rgl.seph_spider import SephSpider as SephSpider
 from apps.rgl.website_stats import WebsiteStats as WebsiteStats
+from apps.rgl.steamdb import SteamDb as SteamDb
 
 class RglMain(object):
     pc_user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
@@ -113,11 +120,58 @@ class RglMain(object):
                 cw.writerow(rec)
         
     @staticmethod
+    def webpage_screenshot(url, pngFile):
+        print('ws 1')
+        browser = webdriver.Chrome()
+        browser.set_window_size(1280, 9000)
+        browser.get(url)
+        browser.execute_script("""
+            (function () {
+                var y = 0;
+                var step = 100;
+                window.scroll(0, 0);
+                function f() {
+                    if (y < document.body.scrollHeight) {
+                        y += step;
+                        window.scroll(0, y);
+                        setTimeout(f, 50);
+                    } else {
+                        window.scroll(0, 0);
+                        document.title += "scroll-done";
+                    }
+                }
+                setTimeout(f, 1000);
+            })();
+        """)
+ 
+        for i in range(30):
+            if "scroll-done" in browser.title:
+                break
+            time.sleep(1)
+        browser.save_screenshot(pngFile)
+        browser.close()
+        print('ws 2:{0}'.format(browser))
+        
+    def download_webpage(url):
+        print('save web page')
+        html = urllib.request.urlopen(url).read()
+        with open(os.getcwd() + '/work/b.html', 'wb') as f:
+            f.write(html)
+        
+    @staticmethod
     def startup(params):
-        WebsiteStats.run_stats({})
+        #WebsiteStats.run_stats({})
         #RglMain.run_normal_spider({})
         #SephSpider.test()
+        SteamDb.get_steam_apps()
         
+        #url = 'http://gamersky.com'
+        #pngFile = os.getcwd() + '/work/p1.png'
+        #RglMain.webpage_screenshot(url, pngFile)
+        
+        #url = 'http://www.gamersky.com'
+        #url = 'http://doyo.cn/'
+        #RglMain.download_webpage(url)
         
         
         

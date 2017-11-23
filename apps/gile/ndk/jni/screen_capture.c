@@ -12,23 +12,6 @@
 #include <sys/mman.h>
 #include "png/png.h"
 
-#include <utils/Errors.h>
-#include <utils/Thread.h>
-#include <utils/Timers.h>
-#include <gui/Surface.h>
-#include <gui/SurfaceComposerClient.h>
-#include <gui/ISurfaceComposer.h>
-#include <ui/DisplayInfo.h>
-#include <media/openmax/OMX_IVCommon.h>
-#include <media/stagefright/foundation/ABuffer.h>
-#include <media/stagefright/foundation/ADebug.h>
-#include <media/stagefright/foundation/AMessage.h>
-#include <media/stagefright/MediaCodec.h>
-#include <media/stagefright/MediaErrors.h>
-#include <media/stagefright/MediaMuxer.h>
-#include <media/ICrypto.h>
-
-
 int get_fb_fix_screeninfo(int fd, struct fb_fix_screeninfo** finfo);
 int get_fb_var_screeninfo(int fd, struct fb_var_screeninfo** vinfo);
 int get_frame_buffer_rgb();

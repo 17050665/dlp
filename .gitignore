@@ -4,6 +4,7 @@
 *.gz
 *.o
 *.so
+*.swp
 apps/gile/ndk/libs/
 lib/tf/
 lib/jinja/

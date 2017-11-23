@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append('./lib/tf/models/slim')
+sys.path.append('./lib/tf/models/research/slim')
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties as FontProperties
